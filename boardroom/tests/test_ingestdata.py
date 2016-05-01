@@ -51,23 +51,44 @@ class TestWriteFormsIndex(unittest.TestCase):
         write_forms_index(self.sample_formindex, self.output_path345, form_types=['3','4','5'])
         self.assertTrue(os.path.exists(self.output_path345))
         path_to_expected = os.path.join(TEST_DIRECTORY, 'data_tests/sample_formindex_output345.csv')
-        with open(self.output_path345, 'rb') as f:
-            for line in f:
-                print line
         self.assertTrue(filecmp.cmp(self.output_path345, path_to_expected))
 
 
 class TestGetFormsIndex(unittest.TestCase):
     def setUp(self):
-        self.sample_formindex_path = os.path.join(TEST_DIRECTORY, 'data_tests/sample_formindex.txt')
-        self.sample_formindex = open(self.sample_formindex_path, 'rb')
+        self.email = 'bonosavesafrica@gmail.com'
         self.output_dir = os.path.join(TEST_DIRECTORY, 'tmp')
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
-        self.output_path = os.path.join(self.output_dir, 'test.csv')
 
     def tearDown(self):
-        for f in os.listdir(self.output_path):
-            file_path = os.path.join(self.output_path, f)
+        for f in os.listdir(self.output_dir):
+            file_path = os.path.join(self.output_dir, f)
             if os.path.isfile(file_path):
                 os.unlink(file_path)
+
+    def test_basic_case(self):
+        years = [2015,2016]
+        get_forms_index(self.email, years, self.output_dir)
+        for year in years:
+            testpath = os.path.join(self.output_dir, '{}.csv'.format(year))
+            self.assertTrue(os.path.exists(testpath))
+        path_to_output = os.path.join(self.output_dir, '2015.csv')
+        # for some reason the test only passes if file and opened and closed
+        with open(path_to_output, 'rb') as f:
+            print sum(1 for line in f)
+        path_to_expected = os.path.join(TEST_DIRECTORY, 'data_tests/2015.csv')
+        with open(path_to_expected, 'rb') as f:
+            print sum(1 for line in f)
+        self.assertTrue(filecmp.cmp(path_to_output, path_to_expected))
+
+    def test_overwrite(self):
+        years = [2014,2016]
+        get_forms_index(self.email, years, self.output_dir, overwrite=True)
+        for year in years:
+            testpath = os.path.join(self.output_dir, '{}.csv'.format(year))
+            self.assertTrue(os.path.exists(testpath))
+        path_to_output = os.path.join(self.output_dir, '2014.csv')
+        path_to_expected = os.path.join(TEST_DIRECTORY, 'data_tests/2014.csv')
+        self.assertTrue(filecmp.cmp(path_to_output, path_to_expected))
+
