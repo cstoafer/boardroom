@@ -3,15 +3,17 @@ import unittest
 import filecmp
 
 from boardroom.ingestdata import ticker_to_cik, write_forms_index, get_forms_index
-from boardroom.tests.utils import TEST_DIRECTORY
+from boardroom.tests.utils import TEST_DIRECTORY, internet_on
 
 class TestTickerToCik(unittest.TestCase):
+    @unittest.skipIf(not internet_on(), "this test requires access to www.sec.gov")
     def test_basic_case_cache(self):
         ticker = 'KO'
         output = ticker_to_cik(ticker)
         expected = u'0000021344'
         self.assertEqual(output, expected)
 
+    @unittest.skipIf(not internet_on(), "this test requires access to www.sec.gov")
     def test_basic_case_no_cache(self):
         ticker = 'KO'
         output = ticker_to_cik(ticker, use_cache=False)
@@ -67,6 +69,8 @@ class TestGetFormsIndex(unittest.TestCase):
             if os.path.isfile(file_path):
                 os.unlink(file_path)
 
+    #@unittest.skipIf(not internet_on(), "this test requires access to ftp.sec.gov")
+    @unittest.skip("skipping test because of large time requirement")
     def test_basic_case(self):
         years = [2015,2016]
         get_forms_index(self.email, years, self.output_dir)
@@ -82,6 +86,8 @@ class TestGetFormsIndex(unittest.TestCase):
             print sum(1 for line in f)
         self.assertTrue(filecmp.cmp(path_to_output, path_to_expected))
 
+    #@unittest.skipIf(not internet_on(), "this test requires access to ftp.sec.gov")
+    @unittest.skip("skipping test because of large time requirement")
     def test_overwrite(self):
         years = [2014,2016]
         get_forms_index(self.email, years, self.output_dir, overwrite=True)
