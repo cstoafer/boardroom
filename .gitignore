@@ -1,0 +1,10 @@
+*.pyc
+*~
+
+# autoenv
+.env
+
+# too much data
+data/
+
+.ipynb_checkpoints/
