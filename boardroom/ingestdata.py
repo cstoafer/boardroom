@@ -116,19 +116,22 @@ def get_forms_index(email, years=range(1993,datetime.datetime.now().year+1),
     password = email
     ftp.login(login, password)
     for year in years:
+        output_path = os.path.join(output_dir, '{}.csv'.format(year))
+        if overwrite is True:
+            utils.silentremove(output_path)
         folders = ftp.nlst('/edgar/full-index/{YYYY}'.format(YYYY=year))
         quarters = [folder for folder in folders if 'QTR' in folder]
         for quarter in quarters:
+            # zipfile acts as a file, but is held in memory as opposed to saving to a file
             zipfile = StringIO()
             index_loc = '{quarter}/form.gz'.format(quarter=quarter)
+            # write the compressed gzip file to zipfile
             ftp.retrbinary('RETR {}'.format(index_loc), zipfile.write)
             zipfile.seek(0)
+            # input_src is the uncompressed version of zipfile
             input_src = gzip.GzipFile(mode = 'rb', fileobj = zipfile)
             if not os.path.exists(output_dir):
                 os.makedirs(output_dir)
-            output_path = os.path.join(output_dir, '{}.csv'.format(year))
-            if overwrite is True:
-                utils.silentremove(output_path)
             write_forms_index(input_src, output_path=output_path, form_types=form_types,
                               output_delimiter=output_delimiter)
             input_src.close()
