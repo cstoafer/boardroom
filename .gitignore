@@ -8,3 +8,6 @@
 data/
 
 .ipynb_checkpoints/
+
+# coverage package for testing
+.coverage
