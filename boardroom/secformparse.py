@@ -240,6 +240,6 @@ def get_form_dict(form_loc):
     form_dict = {
         'issuer': get_issuer_dict_from_xmltree(tree),
         'owners': get_owner_dict_from_xmltree(tree),
-        'trades': get_trade_owner_dict_from_xmltree(tree)
+        'trades': get_trade_info_dict_from_xmltree(tree)
         }
     return form_dict
