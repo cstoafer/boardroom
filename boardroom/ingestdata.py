@@ -49,7 +49,7 @@ def write_forms_index(input_src, output_path, form_types=['4'], output_delimiter
     Parses input from SEC form index files and writes to csv.
 
     Writes a delimited file to ``output_path``.  Each line is:
-        <form type>|<company name>|<form submission date>|<location on ftp.sec.gov>
+        <form type>|<company name>|<CIK>|<form submission date>|<location on ftp.sec.gov>
     Note: lines are appended to file at output_path.
 
     Args:
@@ -75,9 +75,9 @@ def write_forms_index(input_src, output_path, form_types=['4'], output_delimiter
             line.extend(row[-3:])
             csvwriter.writerow(line)
 
-def get_forms_index(email, years=range(1993,datetime.datetime.now().year+1),
+def get_forms_index(years=range(1993,datetime.datetime.now().year+1),
                     output_dir='data/form_index/', overwrite=False, form_types=['4'],
-                    output_delimiter='|'):
+                    output_delimiter='|', email=config.email):
     """
     Opens the SEC index by form category, parses the content, and saves to csv files.
 
@@ -89,15 +89,14 @@ def get_forms_index(email, years=range(1993,datetime.datetime.now().year+1),
     building a local index.
 
     Writes a delimited file to ``output_path``.  Each line is:
-        <form type>|<company name>|<form submission date>|<location on ftp.sec.gov>
+        <form type>|<company name>|<CIK>|<form submission date>|<location on ftp.sec.gov>
 
     NOTE: to abide by the rules of the
     `SEC FTP site <https://www.sec.gov/edgar/searchedgar/ftpusers.htm>`_ you will need to
     include your email for logging in.  This only seems to be used if there is a problem
-    with the server.
+    with the server. You can set your email in config.py.
 
     Args:
-        email (str): Your email address used for logging into SEC ftp site.
         years (Iterable): One item for each year.  Defaults to entire history available
             through current year.
         output_dir (str): Directory for output. Defaults to 'data/form_index'.
@@ -107,6 +106,8 @@ def get_forms_index(email, years=range(1993,datetime.datetime.now().year+1),
             forms 3, 4, 5, as described on the `SEC forms site <https://www.sec.gov/forms>`_.
         output_delimiter (char): Single character delimiter (as required by python's csv package).
             Defaults to '|'.
+        email (str): Your email address used for logging into SEC ftp site. Defaults to value
+            in config.py.
 
     """
     ftp = FTP('ftp.sec.gov')
@@ -136,3 +137,5 @@ def get_forms_index(email, years=range(1993,datetime.datetime.now().year+1),
                               output_delimiter=output_delimiter)
             input_src.close()
     ftp.quit()
+
+
