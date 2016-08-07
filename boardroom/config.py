@@ -1,6 +1,6 @@
 import os
 
-PROJECT_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
+PROJECT_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir)
 DATA_DIR = os.path.join(PROJECT_ROOT, 'data')
 
 email = 'cstoafer@gmail.com'
