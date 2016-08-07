@@ -9,6 +9,7 @@ import requests
 from bs4 import BeautifulSoup
 
 import utils
+import config
 
 def ticker_to_cik(ticker, use_cache=True):
     '''
