@@ -1,0 +1,478 @@
+(dp1
+S'owners'
+p2
+(dp3
+S'0001551136'
+p4
+(dp5
+S'city'
+p6
+S'NEW YORK'
+p7
+sS'name'
+p8
+S'Baker Bros. Investments, L.P.'
+p9
+sS'cik'
+p10
+g4
+sS'zipcode'
+p11
+S'US 10065'
+p12
+sS'is_director'
+p13
+S'1'
+sS'state'
+p14
+S'NY'
+p15
+sS'addr2'
+p16
+NsS'is_ten_percent_owner'
+p17
+S'1'
+sS'addr1'
+p18
+S'667 MADISON AVENUE'
+p19
+sS'is_officer'
+p20
+S'0'
+sS'is_other'
+p21
+S'0'
+ssS'0001551137'
+p22
+(dp23
+g6
+S'NEW YORK'
+p24
+sg8
+S'Baker/Tisch Investments, LP'
+p25
+sg10
+g22
+sg11
+S'US 10065'
+p26
+sg13
+S'1'
+sg14
+S'NY'
+p27
+sg16
+Nsg17
+S'1'
+sg18
+S'667 MADISON AVENUE, 21ST FLOOR'
+p28
+sg20
+S'0'
+sg21
+S'0'
+ssS'0001263508'
+p29
+(dp30
+g6
+S'NEW YORK'
+p31
+sg8
+S'BAKER BROS. ADVISORS LP'
+p32
+sg10
+g29
+sg11
+S'US 10065'
+p33
+sg13
+S'1'
+sg14
+S'NY'
+p34
+sg16
+Nsg17
+S'1'
+sg18
+S'667 MADISON AVENUE, 21ST FLOOR'
+p35
+sg20
+S'0'
+sg21
+S'0'
+ssS'0001551132'
+p36
+(dp37
+g6
+S'NEW YORK'
+p38
+sg8
+S'Baker Bros. Investments II, L.P.'
+p39
+sg10
+g36
+sg11
+S'US 10065'
+p40
+sg13
+S'1'
+sg14
+S'NY'
+p41
+sg16
+Nsg17
+S'1'
+sg18
+S'667 MADISON AVENUE 21ST FLOOR'
+p42
+sg20
+S'0'
+sg21
+S'0'
+ssS'0001087939'
+p43
+(dp44
+g6
+S'NEW YORK'
+p45
+sg8
+S'BAKER JULIAN'
+p46
+sg10
+g43
+sg11
+S'US 10065'
+p47
+sg13
+S'1'
+sg14
+S'NY'
+p48
+sg16
+Nsg17
+S'1'
+sg18
+S'667 MADISON AVENUE, 21ST FLOOR'
+p49
+sg20
+S'0'
+sg21
+S'0'
+ssS'0001087940'
+p50
+(dp51
+g6
+S'NEW YORK'
+p52
+sg8
+S'BAKER FELIX'
+p53
+sg10
+g50
+sg11
+S'US 10065'
+p54
+sg13
+S'1'
+sg14
+S'NY'
+p55
+sg16
+Nsg17
+S'1'
+sg18
+S'667 MADISON AVENUE, 21ST FLOOR'
+p56
+sg20
+S'0'
+sg21
+S'0'
+ssS'0001363364'
+p57
+(dp58
+g6
+S'NEW YORK'
+p59
+sg8
+S'Baker Brothers Life Sciences LP'
+p60
+sg10
+g57
+sg11
+S'US 10065'
+p61
+sg13
+S'1'
+sg14
+S'NY'
+p62
+sg16
+Nsg17
+S'1'
+sg18
+S'667 MADISON AVENUE, 21ST FLOOR'
+p63
+sg20
+S'0'
+sg21
+S'0'
+ssS'0001551138'
+p64
+(dp65
+g6
+S'NEW YORK'
+p66
+sg8
+S'14159, L.P.'
+p67
+sg10
+g64
+sg11
+S'US 10065'
+p68
+sg13
+S'1'
+sg14
+S'NY'
+p69
+sg16
+Nsg17
+S'1'
+sg18
+S'667 MADISION AVENUE, 21ST FLOOR'
+p70
+sg20
+S'0'
+sg21
+S'0'
+ssS'0001551139'
+p71
+(dp72
+g6
+S'NEW YORK'
+p73
+sg8
+S'667, L.P.'
+p74
+sg10
+g71
+sg11
+S'US 10065'
+p75
+sg13
+S'1'
+sg14
+S'NY'
+p76
+sg16
+Nsg17
+S'1'
+sg18
+S'667 MADISON AVENUE 21ST FLOOR'
+p77
+sg20
+S'0'
+sg21
+S'0'
+ssS'0001580575'
+p78
+(dp79
+g6
+S'NEW YORK'
+p80
+sg8
+S'Baker Bros. Advisors (GP) LLC'
+p81
+sg10
+g78
+sg11
+S'US 10065'
+p82
+sg13
+S'1'
+sg14
+S'NY'
+p83
+sg16
+Nsg17
+S'1'
+sg18
+S'667 MADISION AVENUE 21ST FLOOR'
+p84
+sg20
+S'0'
+sg21
+S'0'
+sssS'trades'
+p85
+(dp86
+S'holdings'
+p87
+(dp88
+S'direct_or_indirect'
+p89
+S'I'
+sS'sec_type'
+p90
+S'Common Stock'
+p91
+sS'shares_owned_after'
+p92
+S'173897'
+p93
+ssS'transactions'
+p94
+(lp95
+(dp96
+g89
+S'I'
+sS'acquired_disposed_code'
+p97
+S'A'
+sS'date'
+p98
+S'2016-01-01'
+p99
+sg90
+S'Common Stock'
+p100
+sS'price_per_share'
+p101
+S'35.2'
+p102
+sS'num_shares'
+p103
+S'568'
+p104
+sg92
+S'203158'
+p105
+sS'transaction_code'
+p106
+S'A'
+sa(dp107
+g89
+S'I'
+sg97
+S'A'
+sg98
+S'2016-01-01'
+p108
+sg90
+S'Common Stock'
+p109
+sg101
+S'35.2'
+p110
+sg103
+S'568'
+p111
+sg92
+S'182894'
+p112
+sg106
+S'A'
+sa(dp113
+g89
+S'I'
+sg97
+S'A'
+sg98
+S'2016-01-01'
+p114
+sg90
+S'Common Stock'
+p115
+sg101
+S'35.2'
+p116
+sg103
+S'568'
+p117
+sg92
+S'22235'
+p118
+sg106
+S'A'
+sa(dp119
+g89
+S'I'
+sg97
+S'A'
+sg98
+S'2016-01-01'
+p120
+sg90
+S'Common Stock'
+p121
+sg101
+S'35.2'
+p122
+sg103
+S'568'
+p123
+sg92
+S'1738405'
+p124
+sg106
+S'A'
+sa(dp125
+g89
+S'I'
+sg97
+S'A'
+sg98
+S'2016-01-01'
+p126
+sg90
+S'Common Stock'
+p127
+sg101
+S'35.2'
+p128
+sg103
+S'568'
+p129
+sg92
+S'11249282'
+p130
+sg106
+S'A'
+sa(dp131
+g89
+S'I'
+sg97
+S'A'
+sg98
+S'2016-01-01'
+p132
+sg90
+S'Common Stock'
+p133
+sg101
+S'35.2'
+p134
+sg103
+S'568'
+p135
+sg92
+S'308843'
+p136
+sg106
+S'A'
+sassS'issuer'
+p137
+(dp138
+S'0001131324'
+p139
+(dp140
+g10
+g139
+sS'symbol'
+p141
+S'GHDX'
+p142
+sg8
+S'GENOMIC HEALTH INC'
+p143
+sss.

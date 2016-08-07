@@ -9,5 +9,7 @@ data/
 
 .ipynb_checkpoints/
 
+*egg-info/
+
 # coverage package for testing
 .coverage

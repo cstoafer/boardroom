@@ -31,6 +31,44 @@ def get_xml(form):
     '''
     return re.search('<XML>((.|\n)*?)<\/XML>', form).groups()[0].strip()
 
+def _get_single_xml_element(element, xpath_str):
+    '''
+    Performs xpath search and expects one element.
+    '''
+    value_list = element.xpath(xpath_str)
+    if len(value_list) == 0:
+        raise ValueError('There are no elements of type {} in the element {}'.format(xpath_str,
+                                                                                    element))
+    if len(value_list) > 1:
+        raise ValueError('Only 1 value was expected in\n'
+                         'xpath: {}\n'
+                         'element: {}\n'
+                         'but more were returned'.format(xpath_str, element))
+    return value_list[0]
+
+def _get_single_xml_value(element, xpath_str):
+    '''
+    Gets a single value from xml.
+    '''
+    return _get_single_xml_element(element, xpath_str).text
+
+def _xpath_to_value_mapping(element, mapping):
+    '''
+    Returns a dict with the keys from ``mapping`` and values of the parsed xml.
+
+    Args:
+        element: lxml element for performing xpath.
+        mapping: dictionary mapping data keys to xpath strings.
+
+    Returns:
+        dict: mapping keys from ``mapping`` to the values retrieved from parsing the xml in
+            ``element``.
+    '''
+    parsed_dict = {}
+    for key, xpath_str in mapping.iteritems():
+        parsed_dict[key] = _get_single_xml_value(element, xpath_str)
+    return parsed_dict
+
 def get_trade_holdings_dict(holding_element):
     '''
     Returns dictionary with data values for trade holdings contained in the xml of the SEC form.
@@ -44,13 +82,12 @@ def get_trade_holdings_dict(holding_element):
             shares_owned_after: Number of shares owners owns after transaction
             direct_or_indirect: Whether the owner owned the shares directly or indirectly
     '''
-    holdings_dict = {}
-    assert(len(holding_element.xpath('./securityTitle/value'))==1)
-    holdings_dict['sec_type'] = holding_element.xpath('./securityTitle/value')[0].text
-    assert(len(holding_element.xpath('.//sharesOwnedFollowingTransaction/value'))==1)
-    holdings_dict['shares_owned_after'] = holding_element.xpath('.//sharesOwnedFollowingTransaction/value')[0].text
-    holdings_dict['direct_or_indirect'] = holding_element.xpath('.//directOrIndirectOwnership/value')[0].text
-    return holdings_dict
+    mapping = {
+            'sec_type':             './securityTitle/value',
+            'shares_owned_after':   './/sharesOwnedFollowingTransaction/value',
+            'direct_or_indirect':   './/directOrIndirectOwnership/value'
+            }
+    return _xpath_to_value_mapping(holding_element, mapping)
 
 def get_transaction_dict(transaction_element):
     '''
@@ -70,16 +107,17 @@ def get_transaction_dict(transaction_element):
             shares_owned_after: Number of shares owners owns after transaction
             direct_or_indirect: Whether the owner owned the shares directly or indirectly
     '''
-    transaction_dict = {}
-    transaction_dict['sec_type'] = transaction_element.xpath('./securityTitle/value')[0].text
-    transaction_dict['date'] = transaction_element.xpath('./transactionDate/value')[0].text
-    transaction_dict['transaction_code'] = transaction_element.xpath('.//transactionCode')[0].text
-    transaction_dict['num_shares'] = transaction_element.xpath('.//transactionShares/value')[0].text
-    transaction_dict['price_per_share'] = transaction_element.xpath('.//transactionPricePerShare/value')[0].text
-    transaction_dict['acquired_disposed_code'] = transaction_element.xpath('.//transactionAcquiredDisposedCode/value')[0].text
-    transaction_dict['shares_owned_after'] = transaction_element.xpath('.//sharesOwnedFollowingTransaction/value')[0].text
-    transaction_dict['direct_or_indirect'] = transaction_element.xpath('.//directOrIndirectOwnership/value')[0].text
-    return transaction_dict
+    mapping = {
+            'sec_type':                 './securityTitle/value',
+            'date':                     './transactionDate/value',
+            'transaction_code':         './/transactionCode',
+            'num_shares':               './/transactionShares/value',
+            'price_per_share':          './/transactionPricePerShare/value',
+            'acquired_disposed_code':   './/transactionAcquiredDisposedCode/value',
+            'shares_owned_after':       './/sharesOwnedFollowingTransaction/value',
+            'direct_or_indirect':       './/directOrIndirectOwnership/value'
+            }
+    return _xpath_to_value_mapping(transaction_element, mapping)
 
 def get_owner_dict(owner_element):
     '''
@@ -102,19 +140,20 @@ def get_owner_dict(owner_element):
             is_ten_percent_owner: 1 if owner owns 10% of company in transaction, else 0
             is_other: 1 if owner is affiliated in another way with company in transaction, else 0
     '''
-    owner_dict = {}
-    owner_dict['cik'] = owner_element.xpath('.//rptOwnerCik')[0].text
-    owner_dict['name'] = owner_element.xpath('.//rptOwnerName')[0].text
-    owner_dict['addr1'] = owner_element.xpath('.//rptOwnerStreet1')[0].text
-    owner_dict['addr2'] = owner_element.xpath('.//rptOwnerStreet2')[0].text
-    owner_dict['city'] = owner_element.xpath('.//rptOwnerCity')[0].text
-    owner_dict['state'] = owner_element.xpath('.//rptOwnerState')[0].text
-    owner_dict['zipcode'] = owner_element.xpath('.//rptOwnerZipCode')[0].text
-    owner_dict['is_director'] = owner_element.xpath('.//isDirector')[0].text
-    owner_dict['is_officer'] = owner_element.xpath('.//isOfficer')[0].text
-    owner_dict['is_ten_percent_owner'] = owner_element.xpath('.//isTenPercentOwner')[0].text
-    owner_dict['is_other'] = owner_element.xpath('.//isOther')[0].text
-    return owner_dict
+    mapping = {
+            'cik':                      './/rptOwnerCik',
+            'name':                     './/rptOwnerName',
+            'addr1':                    './/rptOwnerStreet1',
+            'addr2':                    './/rptOwnerStreet2',
+            'city':                     './/rptOwnerCity',
+            'state':                    './/rptOwnerState',
+            'zipcode':                  './/rptOwnerZipCode',
+            'is_director':              './/isDirector',
+            'is_officer':               './/isOfficer',
+            'is_ten_percent_owner':     './/isTenPercentOwner',
+            'is_other':                 './/isOther'
+            }
+    return _xpath_to_value_mapping(owner_element, mapping)
 
 def get_issuer_dict(issuer_element):
     '''
@@ -129,11 +168,51 @@ def get_issuer_dict(issuer_element):
             name: Name of issuer
             symbol: Trading symbol of issuer
     '''
-    issuer_dict = {}
-    issuer_dict['cik'] = issuer_element.xpath('.//issuerCik')[0].text
-    issuer_dict['name'] = issuer_element.xpath('.//issuerName')[0].text
-    issuer_dict['symbol'] = issuer_element.xpath('.//issuerTradingSymbol')[0].text
-    return issuer_dict
+    mapping = {
+            'cik':      './/issuerCik',
+            'name':     './/issuerName',
+            'symbol':   './/issuerTradingSymbol'
+            }
+    return _xpath_to_value_mapping(issuer_element, mapping)
+
+def get_issuer_dict_from_xmltree(tree):
+    '''
+    Parses issuer information from SEC Filing xml
+    '''
+    issuers = tree.xpath('//issuer')
+    issuer_dict_all = {}
+    for issuer in issuers:
+        issuer_dict = get_issuer_dict(issuer)
+        issuer_dict_all[issuer_dict['cik']] = issuer_dict
+    return issuer_dict_all
+
+def get_owner_dict_from_xmltree(tree):
+    '''
+    Parses security owner information from SEC Filing xml
+    '''
+    owners = tree.xpath('//reportingOwner')
+    owner_dict_all = {}
+    for owner in owners:
+        owner_dict = get_owner_dict(owner)
+        owner_dict_all[owner_dict['cik']] = owner_dict
+    return owner_dict_all
+
+def get_trade_info_dict_from_xmltree(tree):
+    '''
+    Parses transaction trade information from SEC Filing xml
+    '''
+    trade_info_dict = {}
+    trade_info = _get_single_xml_element(tree, '//nonDerivativeTable')
+    trade_holdings = _get_single_xml_element(trade_info, '//nonDerivativeHolding')
+    trade_holdings_dict = get_trade_holdings_dict(trade_holdings)
+    trade_transactions = trade_info.xpath('.//nonDerivativeTransaction')
+    transactions_all = []
+    for transaction in trade_transactions:
+        transaction_dict = get_transaction_dict(transaction)
+        transactions_all.append(transaction_dict)
+    trade_info_dict['holdings'] = trade_holdings_dict
+    trade_info_dict['transactions'] = transactions_all
+    return trade_info_dict
 
 def get_form_dict(form_loc):
     '''
@@ -158,32 +237,9 @@ def get_form_dict(form_loc):
     schema_version = tree.xpath('//schemaVersion')[0].text
     # Eventually support for forms 3,4,5
     form_type = tree.xpath('//documentType')[0].text
-    owners = tree.xpath('//reportingOwner')
-    issuers = tree.xpath('//issuer')
-    issuer_dict_all = {}
-    owner_dict_all = {}
-    for issuer in issuers:
-        issuer_dict = get_issuer_dict(issuer)
-        issuer_dict_all[issuer_dict['cik']] = issuer_dict
-    for owner in owners:
-        owner_dict = get_owner_dict(owner)
-        owner_dict_all[owner_dict['cik']] = owner_dict
-    trade_info_dict = {}
-    trade_info = tree.xpath('//nonDerivativeTable')
-    assert(len(trade_info)==1)
-    trade_holdings = trade_info[0].xpath('.//nonDerivativeHolding')
-    assert(len(trade_holdings)==1)
-    trade_holdings_dict = get_trade_holdings_dict(trade_holdings[0])
-    trade_transactions = trade_info[0].xpath('.//nonDerivativeTransaction')
-    transactions_all = []
-    for transaction in trade_transactions:
-        transaction_dict = get_transaction_dict(transaction)
-        transactions_all.append(transaction_dict)
-    trade_info_dict['holdings'] = trade_holdings_dict
-    trade_info_dict['transactions'] = transactions_all
     form_dict = {
-        'issuer': issuer_dict_all,
-        'owners': owner_dict_all,
-        'trades': trade_info_dict
+        'issuer': get_issuer_dict_from_xmltree(tree),
+        'owners': get_owner_dict_from_xmltree(tree),
+        'trades': get_trade_info_dict_from_xmltree(tree)
         }
     return form_dict
