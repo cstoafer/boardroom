@@ -4,6 +4,7 @@ import filecmp
 
 from boardroom.ingestdata import ticker_to_cik, write_forms_index, get_forms_index
 from boardroom.tests.utils import TEST_DIRECTORY, internet_on
+import boardroom.config
 
 class TestTickerToCik(unittest.TestCase):
     def setUp(self):
