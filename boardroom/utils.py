@@ -2,12 +2,14 @@ import os
 import errno
 import cPickle as pickle
 
-def save_cache_dict(datadict, filename, directory='data'):
+import config
+
+def save_cache_dict(datadict, filename, directory=config.DATA_DIR):
     filepath = os.path.join(directory, filename)
     with open(filepath, 'wb') as f:
         pickle.dump(datadict, f)
 
-def load_cache_dict(filename, directory='data'):
+def load_cache_dict(filename, directory=config.DATA_DIR):
     filepath = os.path.join(directory, filename)
     if not os.path.isfile(filepath):
         return dict()
