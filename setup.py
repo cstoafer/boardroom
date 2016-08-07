@@ -9,7 +9,7 @@ def find_requirements():
 setup(
     name='boardroom',
     version='0.0.0',
-    packages=['boardroom', 'boardroom.test'],
+    packages=['boardroom', 'boardroom.tests'],
     description='Observe and analyze insider trading from SEC filings.',
     url='https://github.com/cstoafer/boardroom',
     install_requires=find_requirements()
