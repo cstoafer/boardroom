@@ -5,6 +5,16 @@ from StringIO import StringIO
 from lxml import etree
 
 def get_sec_form(form_loc):
+    '''
+    Retrieves an SEC form from location using FTP site.
+
+    Args:
+        form_loc (str): Location of form on SEC's FTP site.
+            Example: 'edgar/data/1551138/0001144204-16-074214.txt'
+
+    Returns:
+        StringIO
+    '''
     ftp = FTP('ftp.sec.gov')
     # login and password, as per instructions on SEC ftp site
     # https://www.sec.gov/edgar/searchedgar/ftpusers.htm
@@ -16,9 +26,50 @@ def get_sec_form(form_loc):
     return formfile
 
 def get_xml(form):
+    '''
+    Parses out XML section of file within tag <XML>...</XML>
+    '''
     return re.search('<XML>((.|\n)*?)<\/XML>', form).groups()[0].strip()
 
+def get_trade_holdings_dict(holding_element):
+    '''
+    Returns dictionary with data values for trade holdings contained in the xml of the SEC form.
+
+    Args:
+        holding_element: lxml element (e.g. result of xpath search) of security holdings data.
+
+    Returns:
+        dict: with security holdings data information keys
+            sec_type: Type of security (e.g. Common Stock)
+            shares_owned_after: Number of shares owners owns after transaction
+            direct_or_indirect: Whether the owner owned the shares directly or indirectly
+    '''
+    holdings_dict = {}
+    assert(len(holding_element.xpath('./securityTitle/value'))==1)
+    holdings_dict['sec_type'] = holding_element.xpath('./securityTitle/value')[0].text
+    assert(len(holding_element.xpath('.//sharesOwnedFollowingTransaction/value'))==1)
+    holdings_dict['shares_owned_after'] = holding_element.xpath('.//sharesOwnedFollowingTransaction/value')[0].text
+    holdings_dict['direct_or_indirect'] = holding_element.xpath('.//directOrIndirectOwnership/value')[0].text
+    return holdings_dict
+
 def get_transaction_dict(transaction_element):
+    '''
+    Returns dictionary with data values contained in the xml of the SEC form.
+
+    Args:
+        transaction_element: lxml element (e.g. result of xpath search) of transaction data.
+
+    Returns:
+        dict: with transaction data information keys
+            sec_type: Type of security (e.g. Common Stock)
+            date: Date of transaction
+            transaction_code
+            num_shares
+            price_per_share
+            acquired_disposed_code: Whether shares were acquired or disposed
+            shares_owned_after: Number of shares owners owns after transaction
+            direct_or_indirect: Whether the owner owned the shares directly or indirectly
+    '''
     transaction_dict = {}
     transaction_dict['sec_type'] = transaction_element.xpath('./securityTitle/value')[0].text
     transaction_dict['date'] = transaction_element.xpath('./transactionDate/value')[0].text
@@ -31,6 +82,26 @@ def get_transaction_dict(transaction_element):
     return transaction_dict
 
 def get_owner_dict(owner_element):
+    '''
+    Returns dictionary with data values for the owners contained in the xml of the SEC form.
+
+    Args:
+        owner_element: lxml element (e.g. result of xpath search) of security owner data.
+
+    Returns:
+        dict: with security owner data information keys
+            cik: CIK (SEC ID) of owner
+            name: Name of owner
+            addr1: Street address line 1
+            addr2: Street address line 2
+            city
+            state
+            zipcode
+            is_director: 1 if owner is a director of company in transaction, else 0
+            is_officer: 1 if owner is an office of company in transaction, else 0
+            is_ten_percent_owner: 1 if owner owns 10% of company in transaction, else 0
+            is_other: 1 if owner is affiliated in another way with company in transaction, else 0
+    '''
     owner_dict = {}
     owner_dict['cik'] = owner_element.xpath('.//rptOwnerCik')[0].text
     owner_dict['name'] = owner_element.xpath('.//rptOwnerName')[0].text
@@ -46,22 +117,40 @@ def get_owner_dict(owner_element):
     return owner_dict
 
 def get_issuer_dict(issuer_element):
+    '''
+    Returns dictionary with data values for the issuer contained in the xml of the SEC form.
+
+    Args:
+        issuer_element: lxml element (e.g. result of xpath search) of issuer data.
+
+    Returns:
+        dict: with issuer data information keys
+            cik: CIK (SEC ID) of issuer
+            name: Name of issuer
+            symbol: Trading symbol of issuer
+    '''
     issuer_dict = {}
     issuer_dict['cik'] = issuer_element.xpath('.//issuerCik')[0].text
     issuer_dict['name'] = issuer_element.xpath('.//issuerName')[0].text
     issuer_dict['symbol'] = issuer_element.xpath('.//issuerTradingSymbol')[0].text
     return issuer_dict
 
-def get_trade_holdings_dict(holding_element):
-    holdings_dict = {}
-    assert(len(holding_element.xpath('./securityTitle/value'))==1)
-    holdings_dict['sec_type'] = holding_element.xpath('./securityTitle/value')[0].text
-    assert(len(holding_element.xpath('.//sharesOwnedFollowingTransaction/value'))==1)
-    holdings_dict['shares_owned_after'] = holding_element.xpath('.//sharesOwnedFollowingTransaction/value')[0].text
-    holdings_dict['direct_or_indirect'] = holding_element.xpath('.//directOrIndirectOwnership/value')[0].text
-    return holdings_dict
-
 def get_form_dict(form_loc):
+    '''
+    Returns dictionary with data values contained in the xml of the SEC form.
+
+    Contains data for issuer, owners, and transactions.
+
+    Args:
+        form_loc (str): Location of form on SEC's FTP site.
+            Example: 'edgar/data/1551138/0001144204-16-074214.txt'
+
+    Returns:
+        dict: with data for issuer, owners, and transactions in SEC form.
+            issuer: Issuer of form
+            owners: Owners of securities that were traded
+            trades: Transaction data for trades
+    '''
     formfile = get_sec_form(form_loc)
     formfile.seek(0)
     xmlcontent = get_xml(formfile.read())
