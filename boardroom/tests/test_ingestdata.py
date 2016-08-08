@@ -4,8 +4,13 @@ import filecmp
 
 from boardroom.ingestdata import ticker_to_cik, write_forms_index, get_forms_index
 from boardroom.tests.utils import TEST_DIRECTORY, internet_on
+import boardroom.config
 
 class TestTickerToCik(unittest.TestCase):
+    def setUp(self):
+        if not os.path.exists(boardroom.config.DATA_DIR):
+            os.makedirs(boardroom.config.DATA_DIR)
+
     @unittest.skipIf(not internet_on(), "this test requires access to www.sec.gov")
     def test_basic_case_cache(self):
         ticker = 'KO'
