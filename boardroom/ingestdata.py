@@ -1,6 +1,9 @@
 import os
 from ftplib import FTP
-from StringIO import StringIO
+try:
+    from StringIO import StringIO
+except:
+    from io import StringIO, BytesIO
 import gzip
 import csv
 import datetime
@@ -8,8 +11,8 @@ import datetime
 import requests
 from bs4 import BeautifulSoup
 
-import utils
-import config
+from boardroom import utils
+from boardroom import config
 
 def ticker_to_cik(ticker, use_cache=True):
     '''

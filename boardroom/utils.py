@@ -1,8 +1,11 @@
 import os
 import errno
-import cPickle as pickle
+try:
+    import cPickle as pickle
+except:
+    import pickle
 
-import config
+from boardroom import config
 
 def save_cache_dict(datadict, filename, directory=config.DATA_DIR):
     filepath = os.path.join(directory, filename)

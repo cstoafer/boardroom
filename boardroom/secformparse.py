@@ -1,12 +1,16 @@
 import re
-from ftplib import FTP
-from StringIO import StringIO
+import requests
+from six import iteritems
+try:
+    from StringIO import StringIO
+except:
+    from io import StringIO, BytesIO
 
 from lxml import etree
 
 def get_sec_form(form_loc):
     '''
-    Retrieves an SEC form from location using FTP site.
+    Retrieves an SEC form from location using HTTPS
 
     Args:
         form_loc (str): Location of form on SEC's FTP site.
@@ -15,15 +19,10 @@ def get_sec_form(form_loc):
     Returns:
         StringIO
     '''
-    ftp = FTP('ftp.sec.gov')
-    # login and password, as per instructions on SEC ftp site
-    # https://www.sec.gov/edgar/searchedgar/ftpusers.htm
-    login = 'anonymous'
-    password = 'cstoafer@gmail.com' #email
-    ftp.login(login, password)
-    formfile = StringIO()
-    _ = ftp.retrbinary('RETR {}'.format(form_loc), formfile.write)
-    return formfile
+    baseurl = 'https://www.sec.gov/Archives/'
+    url = baseurl + form_loc
+    r = requests.get(url)
+    return r.text
 
 def get_xml(form):
     '''
@@ -65,9 +64,10 @@ def _xpath_to_value_mapping(element, mapping):
             ``element``.
     '''
     parsed_dict = {}
-    for key, xpath_str in mapping.iteritems():
+    for key, xpath_str in iteritems(mapping):
         parsed_dict[key] = _get_single_xml_value(element, xpath_str)
     return parsed_dict
+
 
 def get_trade_holdings_dict(holding_element):
     '''
@@ -88,6 +88,7 @@ def get_trade_holdings_dict(holding_element):
             'direct_or_indirect':   './/directOrIndirectOwnership/value'
             }
     return _xpath_to_value_mapping(holding_element, mapping)
+
 
 def get_transaction_dict(transaction_element):
     '''
@@ -202,10 +203,11 @@ def get_trade_info_dict_from_xmltree(tree):
     Parses transaction trade information from SEC Filing xml
     '''
     trade_info_dict = {}
-    trade_info = _get_single_xml_element(tree, '//nonDerivativeTable')
-    trade_holdings = _get_single_xml_element(trade_info, '//nonDerivativeHolding')
-    trade_holdings_dict = get_trade_holdings_dict(trade_holdings)
-    trade_transactions = trade_info.xpath('.//nonDerivativeTransaction')
+    nonderiv_trade_info = _get_single_xml_element(tree, '//nonDerivativeTable')
+    nonderiv_trade_holdings = _get_single_xml_element(nonderiv_trade_info,
+                                                      '//nonDerivativeHolding')
+    nonderiv_trade_holdings_dict = get_trade_holdings_dict(non_deriv_trade_holdings)
+    nonderiv_trade_transactions = nonderiv_trade_info.xpath('.//nonDerivativeTransaction')
     transactions_all = []
     for transaction in trade_transactions:
         transaction_dict = get_transaction_dict(transaction)
@@ -230,9 +232,8 @@ def get_form_dict(form_loc):
             owners: Owners of securities that were traded
             trades: Transaction data for trades
     '''
-    formfile = get_sec_form(form_loc)
-    formfile.seek(0)
-    xmlcontent = get_xml(formfile.read())
+    content = get_sec_form(form_loc)
+    xmlcontent = get_xml(content)
     tree = etree.fromstring(xmlcontent)
     schema_version = tree.xpath('//schemaVersion')[0].text
     # Eventually support for forms 3,4,5

@@ -13,3 +13,5 @@ data/
 
 # coverage package for testing
 .coverage
+
+.idea
