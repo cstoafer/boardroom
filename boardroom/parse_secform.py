@@ -142,10 +142,10 @@ def get_owner_dict(owner_element):
             'city':                     ('.//rptOwnerCity', None),
             'state':                    ('.//rptOwnerState', None),
             'zipcode':                  ('.//rptOwnerZipCode', None),
-            'is_director':              ('.//isDirector', '?'),
-            'is_officer':               ('.//isOfficer', '?'),
-            'is_ten_percent_owner':     ('.//isTenPercentOwner', '?'),
-            'is_other':                 ('.//isOther', '?'),
+            'is_director':              ('.//isDirector', ''),
+            'is_officer':               ('.//isOfficer', ''),
+            'is_ten_percent_owner':     ('.//isTenPercentOwner', ''),
+            'is_other_exec_type':       ('.//isOther', ''),
             }
     return _xpath_to_value_mapping(owner_element, mapping)
 
@@ -201,7 +201,7 @@ def get_nonderivative_info_dict_from_xmltree(tree):
     except IndexError:
         # There is no non-derivative table
         assert(len(tree.xpath('//derivativeTable')) > 0)
-        return {'holdings': [], 'transactions': []}
+        return {'holdings': [], 'trades': []}
     nonderiv_trade_holdings = nonderiv_trade_info.xpath('//nonDerivativeHolding')
     holdings_all = []
     for holding in nonderiv_trade_holdings:
@@ -213,7 +213,7 @@ def get_nonderivative_info_dict_from_xmltree(tree):
         transaction_dict = get_transaction_dict(transaction)
         transactions_all.append(transaction_dict)
     info_dict['holdings'] = holdings_all
-    info_dict['transactions'] = transactions_all
+    info_dict['trades'] = transactions_all
     return info_dict
 
 def get_form_dict(form_loc, cache_file=False):
@@ -244,7 +244,7 @@ def get_form_dict(form_loc, cache_file=False):
     form_type = tree.xpath('//documentType')[0].text
     form_dict = {
         'issuer':           get_issuer_dict_from_xmltree(tree),
-        'owners':           get_owner_dict_from_xmltree(tree),
+        'owner':            get_owner_dict_from_xmltree(tree),
         'nonderivative':    get_nonderivative_info_dict_from_xmltree(tree)
         #'derivative':       get_derivative_info_dict_from_xmltree(tree)
         }
