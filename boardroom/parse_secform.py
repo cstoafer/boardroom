@@ -1,29 +1,16 @@
 import re
-from ftplib import FTP
-from StringIO import StringIO
+
+from six import iteritems
+
+from boardroom import ingestdata
+
+try:
+    from StringIO import StringIO
+except:
+    from io import StringIO, BytesIO
 
 from lxml import etree
 
-def get_sec_form(form_loc):
-    '''
-    Retrieves an SEC form from location using FTP site.
-
-    Args:
-        form_loc (str): Location of form on SEC's FTP site.
-            Example: 'edgar/data/1551138/0001144204-16-074214.txt'
-
-    Returns:
-        StringIO
-    '''
-    ftp = FTP('ftp.sec.gov')
-    # login and password, as per instructions on SEC ftp site
-    # https://www.sec.gov/edgar/searchedgar/ftpusers.htm
-    login = 'anonymous'
-    password = 'cstoafer@gmail.com' #email
-    ftp.login(login, password)
-    formfile = StringIO()
-    _ = ftp.retrbinary('RETR {}'.format(form_loc), formfile.write)
-    return formfile
 
 def get_xml(form):
     '''
@@ -36,9 +23,9 @@ def _get_single_xml_element(element, xpath_str):
     Performs xpath search and expects one element.
     '''
     value_list = element.xpath(xpath_str)
-    if len(value_list) == 0:
-        raise ValueError('There are no elements of type {} in the element {}'.format(xpath_str,
-                                                                                    element))
+    #if len(value_list) == 0:
+    #    raise ValueError('There are no elements of type {} in the element {}'.format(xpath_str,
+    #                                                                                element))
     if len(value_list) > 1:
         raise ValueError('Only 1 value was expected in\n'
                          'xpath: {}\n'
@@ -46,11 +33,19 @@ def _get_single_xml_element(element, xpath_str):
                          'but more were returned'.format(xpath_str, element))
     return value_list[0]
 
-def _get_single_xml_value(element, xpath_str):
+def _get_single_xml_value(element, xpath_str, default=None):
     '''
     Gets a single value from xml.
     '''
-    return _get_single_xml_element(element, xpath_str).text
+    try:
+        text = _get_single_xml_element(element, xpath_str).text
+        return text
+    except IndexError:
+        if default is not None:
+            return default
+        else:
+            raise ValueError('There are no elements of type {} in the element {}'
+                             ' and no default value is set.'.format(xpath_str, element))
 
 def _xpath_to_value_mapping(element, mapping):
     '''
@@ -65,9 +60,10 @@ def _xpath_to_value_mapping(element, mapping):
             ``element``.
     '''
     parsed_dict = {}
-    for key, xpath_str in mapping.iteritems():
-        parsed_dict[key] = _get_single_xml_value(element, xpath_str)
+    for key, (xpath_str, default) in iteritems(mapping):
+        parsed_dict[key] = _get_single_xml_value(element, xpath_str, default)
     return parsed_dict
+
 
 def get_trade_holdings_dict(holding_element):
     '''
@@ -83,11 +79,12 @@ def get_trade_holdings_dict(holding_element):
             direct_or_indirect: Whether the owner owned the shares directly or indirectly
     '''
     mapping = {
-            'sec_type':             './securityTitle/value',
-            'shares_owned_after':   './/sharesOwnedFollowingTransaction/value',
-            'direct_or_indirect':   './/directOrIndirectOwnership/value'
+            'sec_type':             ('./securityTitle/value', None),
+            'shares_owned_after':   ('.//sharesOwnedFollowingTransaction/value', None),
+            'direct_or_indirect':   ('.//directOrIndirectOwnership/value', None),
             }
     return _xpath_to_value_mapping(holding_element, mapping)
+
 
 def get_transaction_dict(transaction_element):
     '''
@@ -108,14 +105,14 @@ def get_transaction_dict(transaction_element):
             direct_or_indirect: Whether the owner owned the shares directly or indirectly
     '''
     mapping = {
-            'sec_type':                 './securityTitle/value',
-            'date':                     './transactionDate/value',
-            'transaction_code':         './/transactionCode',
-            'num_shares':               './/transactionShares/value',
-            'price_per_share':          './/transactionPricePerShare/value',
-            'acquired_disposed_code':   './/transactionAcquiredDisposedCode/value',
-            'shares_owned_after':       './/sharesOwnedFollowingTransaction/value',
-            'direct_or_indirect':       './/directOrIndirectOwnership/value'
+            'sec_type':                 ('./securityTitle/value', None),
+            'date':                     ('./transactionDate/value', None),
+            'transaction_code':         ('.//transactionCode', None),
+            'num_shares':               ('.//transactionShares/value', None),
+            'price_per_share':          ('.//transactionPricePerShare/value', '0'),
+            'acquired_disposed_code':   ('.//transactionAcquiredDisposedCode/value', None),
+            'shares_owned_after':       ('.//sharesOwnedFollowingTransaction/value', None),
+            'direct_or_indirect':       ('.//directOrIndirectOwnership/value', None),
             }
     return _xpath_to_value_mapping(transaction_element, mapping)
 
@@ -141,17 +138,17 @@ def get_owner_dict(owner_element):
             is_other: 1 if owner is affiliated in another way with company in transaction, else 0
     '''
     mapping = {
-            'cik':                      './/rptOwnerCik',
-            'name':                     './/rptOwnerName',
-            'addr1':                    './/rptOwnerStreet1',
-            'addr2':                    './/rptOwnerStreet2',
-            'city':                     './/rptOwnerCity',
-            'state':                    './/rptOwnerState',
-            'zipcode':                  './/rptOwnerZipCode',
-            'is_director':              './/isDirector',
-            'is_officer':               './/isOfficer',
-            'is_ten_percent_owner':     './/isTenPercentOwner',
-            'is_other':                 './/isOther'
+            'cik':                      ('.//rptOwnerCik', None),
+            'name':                     ('.//rptOwnerName', None),
+            'addr1':                    ('.//rptOwnerStreet1', None),
+            'addr2':                    ('.//rptOwnerStreet2', None),
+            'city':                     ('.//rptOwnerCity', None),
+            'state':                    ('.//rptOwnerState', None),
+            'zipcode':                  ('.//rptOwnerZipCode', None),
+            'is_director':              ('.//isDirector', '?'),
+            'is_officer':               ('.//isOfficer', '?'),
+            'is_ten_percent_owner':     ('.//isTenPercentOwner', '?'),
+            'is_other':                 ('.//isOther', '?'),
             }
     return _xpath_to_value_mapping(owner_element, mapping)
 
@@ -169,9 +166,9 @@ def get_issuer_dict(issuer_element):
             symbol: Trading symbol of issuer
     '''
     mapping = {
-            'cik':      './/issuerCik',
-            'name':     './/issuerName',
-            'symbol':   './/issuerTradingSymbol'
+            'cik':      ('.//issuerCik', None),
+            'name':     ('.//issuerName', None),
+            'symbol':   ('.//issuerTradingSymbol', None),
             }
     return _xpath_to_value_mapping(issuer_element, mapping)
 
@@ -197,31 +194,39 @@ def get_owner_dict_from_xmltree(tree):
         owner_dict_all[owner_dict['cik']] = owner_dict
     return owner_dict_all
 
-def get_trade_info_dict_from_xmltree(tree):
+def get_nonderivative_info_dict_from_xmltree(tree):
     '''
     Parses transaction trade information from SEC Filing xml
     '''
-    trade_info_dict = {}
-    trade_info = _get_single_xml_element(tree, '//nonDerivativeTable')
-    trade_holdings = _get_single_xml_element(trade_info, '//nonDerivativeHolding')
-    trade_holdings_dict = get_trade_holdings_dict(trade_holdings)
-    trade_transactions = trade_info.xpath('.//nonDerivativeTransaction')
+    info_dict = {}
+    try:
+        nonderiv_trade_info = _get_single_xml_element(tree, '//nonDerivativeTable')
+    except IndexError:
+        # There is no non-derivative table
+        assert(len(tree.xpath('//derivativeTable')) > 0)
+        return {'holdings': [], 'transactions': []}
+    nonderiv_trade_holdings = nonderiv_trade_info.xpath('//nonDerivativeHolding')
+    holdings_all = []
+    for holding in nonderiv_trade_holdings:
+        nonderiv_trade_holdings_dict = get_trade_holdings_dict(holding)
+        holdings_all.append(nonderiv_trade_holdings_dict)
+    nonderiv_trade_transactions = nonderiv_trade_info.xpath('.//nonDerivativeTransaction')
     transactions_all = []
-    for transaction in trade_transactions:
+    for transaction in nonderiv_trade_transactions:
         transaction_dict = get_transaction_dict(transaction)
         transactions_all.append(transaction_dict)
-    trade_info_dict['holdings'] = trade_holdings_dict
-    trade_info_dict['transactions'] = transactions_all
-    return trade_info_dict
+    info_dict['holdings'] = holdings_all
+    info_dict['transactions'] = transactions_all
+    return info_dict
 
-def get_form_dict(form_loc):
+def get_form_dict(form_loc, cache_file=False):
     '''
     Returns dictionary with data values contained in the xml of the SEC form.
 
     Contains data for issuer, owners, and transactions.
 
     Args:
-        form_loc (str): Location of form on SEC's FTP site.
+        form_loc (str): Location of form on SEC's EDGAR site.
             Example: 'edgar/data/1551138/0001144204-16-074214.txt'
 
     Returns:
@@ -230,16 +235,20 @@ def get_form_dict(form_loc):
             owners: Owners of securities that were traded
             trades: Transaction data for trades
     '''
-    formfile = get_sec_form(form_loc)
-    formfile.seek(0)
-    xmlcontent = get_xml(formfile.read())
+    content, used_cache = ingestdata.get_sec_form(form_loc, cache_file=cache_file)
+    xmlcontent = get_xml(content)
     tree = etree.fromstring(xmlcontent)
     schema_version = tree.xpath('//schemaVersion')[0].text
+    supported_schema_versions = ['X0306']
+    if schema_version not in supported_schema_versions:
+        raise ValueError('Schema version not yet supported:\n'
+                         '{}'.format(schema_version))
     # Eventually support for forms 3,4,5
     form_type = tree.xpath('//documentType')[0].text
     form_dict = {
-        'issuer': get_issuer_dict_from_xmltree(tree),
-        'owners': get_owner_dict_from_xmltree(tree),
-        'trades': get_trade_info_dict_from_xmltree(tree)
+        'issuer':           get_issuer_dict_from_xmltree(tree),
+        'owners':           get_owner_dict_from_xmltree(tree),
+        'nonderivative':    get_nonderivative_info_dict_from_xmltree(tree)
+        #'derivative':       get_derivative_info_dict_from_xmltree(tree)
         }
-    return form_dict
+    return form_dict, used_cache
