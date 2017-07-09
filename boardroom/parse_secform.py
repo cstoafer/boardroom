@@ -1,15 +1,12 @@
 import re
-
 from six import iteritems
-
-from boardroom import ingestdata
-
 try:
     from StringIO import StringIO
-except:
+except ImportError:
     from io import StringIO, BytesIO
-
 from lxml import etree
+
+from boardroom import ingestdata
 
 
 def get_xml(form):
