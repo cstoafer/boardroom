@@ -14,7 +14,13 @@ from bs4 import BeautifulSoup
 from boardroom import utils
 from boardroom import config
 
-def ticker_to_cik(ticker, use_cache=True):
+try:
+    basestring
+except NameError:
+    basestring = str
+
+
+def ticker_to_cik(ticker, use_cache=True, remove_leading_zeros=True):
     '''
     Returns a company's CIK with their ticker symbol as input.
 
@@ -25,7 +31,7 @@ def ticker_to_cik(ticker, use_cache=True):
 
     Examples:
         >>> ticker_to_cik('KO')
-        u'0000021344'
+        u'21344'
 
     Returns:
         Unicode: CIK (Central Index Key) for company.
@@ -35,7 +41,10 @@ def ticker_to_cik(ticker, use_cache=True):
     if use_cache:
         ticker_cik_dict = utils.load_cache_dict('ticker_cik.p')
         if ticker in ticker_cik_dict:
-            return ticker_cik_dict[ticker]
+            cik = ticker_cik_dict[ticker]
+            if remove_leading_zeros is True:
+                cik = str(int(cik))
+            return cik
     query = 'http://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&' \
             'CIK={}&count=100&output=xml'.format(ticker)
     r = requests.get(query)
@@ -46,6 +55,8 @@ def ticker_to_cik(ticker, use_cache=True):
     if use_cache:
         ticker_cik_dict[ticker] = cik
         utils.save_cache_dict(ticker_cik_dict, 'ticker_cik.p')
+    if remove_leading_zeros is True:
+        cik = str(int(cik))
     return cik
 
 def write_forms_index(input_src, output_path, form_types=['4'], output_delimiter='|'):

@@ -5,6 +5,7 @@ try:
 except ImportError:
     import pickle
 import gzip
+import csv
 
 from boardroom import config
 
@@ -65,3 +66,12 @@ def silentremove(filepath):
 def get_form_index_fpath(year):
     fname = '{}.csv'.format(year)
     return os.path.join(config.FORM_INDEX_DIR, fname)
+
+
+def form_loc_iter(year, delimiter='|', cik=None):
+    fpath = get_form_index_fpath(year)
+    with open(fpath, 'r') as f:
+        csvreader = csv.reader(f, delimiter=delimiter)
+        for row in csvreader:
+            if cik is None or row[2] == cik:
+                yield row
