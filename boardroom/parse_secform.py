@@ -1,6 +1,9 @@
 import re
-import requests
+
 from six import iteritems
+
+from boardroom import ingestdata
+
 try:
     from StringIO import StringIO
 except:
@@ -8,21 +11,6 @@ except:
 
 from lxml import etree
 
-def get_sec_form(form_loc):
-    '''
-    Retrieves an SEC form from location using HTTPS
-
-    Args:
-        form_loc (str): Location of form on SEC's EDGAR site.
-            Example: 'edgar/data/1551138/0001144204-16-074214.txt'
-
-    Returns:
-        string
-    '''
-    baseurl = 'https://www.sec.gov/Archives/'
-    url = baseurl + form_loc
-    r = requests.get(url)
-    return r.text
 
 def get_xml(form):
     '''
@@ -231,7 +219,7 @@ def get_nonderivative_info_dict_from_xmltree(tree):
     info_dict['transactions'] = transactions_all
     return info_dict
 
-def get_form_dict(form_loc):
+def get_form_dict(form_loc, cache_file=False):
     '''
     Returns dictionary with data values contained in the xml of the SEC form.
 
@@ -247,7 +235,7 @@ def get_form_dict(form_loc):
             owners: Owners of securities that were traded
             trades: Transaction data for trades
     '''
-    content = get_sec_form(form_loc)
+    content, used_cache = ingestdata.get_sec_form(form_loc, cache_file=cache_file)
     xmlcontent = get_xml(content)
     tree = etree.fromstring(xmlcontent)
     schema_version = tree.xpath('//schemaVersion')[0].text
@@ -263,4 +251,4 @@ def get_form_dict(form_loc):
         'nonderivative':    get_nonderivative_info_dict_from_xmltree(tree)
         #'derivative':       get_derivative_info_dict_from_xmltree(tree)
         }
-    return form_dict
+    return form_dict, used_cache

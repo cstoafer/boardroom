@@ -143,3 +143,47 @@ def get_forms_index(years=range(1993,datetime.datetime.now().year+1),
     ftp.quit()
 
 
+def _get_sec_form_cache(form_loc):
+    """Retrieves saved form of saved SEC form"""
+    fpath = os.path.join(config.FORM_CACHE_DIR, form_loc)
+    text = utils.read_file(fpath)
+    return text
+
+
+def _save_sec_form_cache(form_loc, text):
+    """Saves contents of SEC form"""
+    outpath = os.path.join(config.FORM_CACHE_DIR, form_loc)
+    utils.makedirs(os.path.dirname(outpath))
+    utils.save_file(outpath, text, compress=True)
+
+
+def download_sec_form(form_loc):
+    """Downloads SEC form from EDGAR system using HTTPS"""
+    baseurl = 'https://www.sec.gov/Archives/'
+    url = baseurl + form_loc
+    r = requests.get(url)
+    content = r.content
+    return content
+
+
+def get_sec_form(form_loc, cache_file=False):
+    '''
+    Retrieves an SEC form from location using cache or HTTPS
+
+    Args:
+        form_loc (str): Location of form on SEC's EDGAR site.
+            Example: 'edgar/data/1551138/0001144204-16-074214.txt'
+
+    Returns:
+        string
+    '''
+    try:
+        text = _get_sec_form_cache(form_loc)
+        used_cache = True
+    except FileNotFoundError:
+        content = download_sec_form(form_loc)
+        text = content.decode('utf8')
+        used_cache = False
+        if cache_file is True:
+            _save_sec_form_cache(form_loc, content)
+    return text, used_cache

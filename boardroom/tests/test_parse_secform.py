@@ -2,10 +2,11 @@ import os
 import unittest
 import cPickle as pickle
 
-from boardroom.parse_secform import (get_sec_form, get_xml, _get_single_xml_element, _get_single_xml_value,
+from boardroom.parse_secform import (get_xml, _get_single_xml_element, _get_single_xml_value,
                                      _xpath_to_value_mapping, get_trade_holdings_dict, get_transaction_dict,
                                      get_owner_dict, get_issuer_dict, get_issuer_dict_from_xmltree, get_owner_dict_from_xmltree,
                                      get_nonderivative_info_dict_from_xmltree, get_form_dict)
+from boardroom.ingestdata import get_sec_form
 from boardroom.tests.utils import TEST_DIRECTORY, internet_on
 
 class TestGetFormDict(unittest.TestCase):

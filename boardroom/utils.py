@@ -4,8 +4,38 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
+import gzip
 
 from boardroom import config
+
+
+def read_file(inpath):
+    if os.path.exists(inpath + '.gz'):
+        inpath += '.gz'
+    if inpath.endswith('.gz'):
+        with gzip.open(inpath, 'rt', encoding='utf8') as f:
+            content = f.read()
+    else:
+        with open(inpath) as f:
+            content = f.read()
+    return content
+
+
+def save_file(outpath, text, compress=True):
+    if compress is True:
+        text = gzip.compress(text)
+        if not outpath.endswith('.gz'):
+            outpath += '.gz'
+    with open(outpath, 'wb') as o:
+        o.write(text)
+
+
+def makedirs(dirpath):
+    """
+    Checks if `dirpath` exists and makes it if it doesn't.
+    """
+    if not os.path.exists(dirpath):
+        os.makedirs(dirpath)
 
 
 def save_cache_dict(datadict, filename, directory=config.DATA_DIR):
