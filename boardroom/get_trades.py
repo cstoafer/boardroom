@@ -3,7 +3,7 @@ import time
 from boardroom import utils, ingestdata, parse_secform
 
 
-def trades_from_ticker_iter(ticker, year_start, year_end, cache_files=False,
+def forms_from_ticker_iter(ticker, year_start, year_end, cache_files=False,
                             download_delay=0.5):
     """
     Retrieve trades of stock ticker in year range.

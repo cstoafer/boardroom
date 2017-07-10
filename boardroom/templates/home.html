@@ -1,0 +1,133 @@
+{% extends "layout.html" %}
+{% block body %}
+
+  <div class="section no-pad-bot" id="index-banner">
+    <div class="container">
+      <br><br>
+      <h1 class="header center orange-text">Retrieve insider trades of a company!</h1>
+      <div class="row center">
+        <h5 class="header col s12 light">Includes reported trades of executives, board members, officers, etc.</h5>
+      </div>
+      <div class="row center">
+        <div class="col s12 m4 offset-m4">
+          <form action="{{ url_for('show_homepage') }}" method=post enctype=multipart/form-data>
+            <label>Company stock ticker: </label><br />
+            <input type="text" name="ticker"><br />
+            <input type="submit" value="Get Trades" id="btn-submit" class="btn-large waves-effect waves-light orange">
+          </form>
+        </div>
+      </div>
+      <br><br>
+
+    </div>
+  </div>
+
+
+  <!--
+        <a href="https://www.usa.gov/elected-officials" id="download-button" class="btn-large waves-effect waves-light orange">Get Info</a>
+  <div class="container">
+    <div class="section">
+
+      <div class="row">
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center light-blue-text"><i class="material-icons">flash_on</i></h2>
+            <h5 class="center">Speeds up development</h5>
+
+            <p class="light">We did most of the heavy lifting for you to provide a default stylings that incorporate our custom components. Additionally, we refined animations and transitions to provide a smoother experience for developers.</p>
+          </div>
+        </div>
+
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center light-blue-text"><i class="material-icons">group</i></h2>
+            <h5 class="center">User Experience Focused</h5>
+
+            <p class="light">By utilizing elements and principles of Material Design, we were able to create a framework that incorporates components and animations that provide more feedback to users. Additionally, a single underlying responsive system across all platforms allow for a more unified user experience.</p>
+          </div>
+        </div>
+
+        <div class="col s12 m4">
+          <div class="icon-block">
+            <h2 class="center light-blue-text"><i class="material-icons">settings</i></h2>
+            <h5 class="center">Easy to work with</h5>
+
+            <p class="light">We have provided detailed documentation as well as specific code examples to help new users get started. We are also always open to feedback and can answer any questions a user may have about Materialize.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <br><br>
+
+    <div class="section">
+
+    </div>
+  </div>
+
+  <footer class="page-footer orange">
+    <div class="container">
+      <div class="row">
+        <div class="col l6 s12">
+          <h5 class="white-text">Company Bio</h5>
+          <p class="grey-text text-lighten-4">We are a team of college students working on this project like it's our full time job. Any amount would help support and continue development on this project and is greatly appreciated.</p>
+
+
+        </div>
+        <div class="col l3 s12">
+          <h5 class="white-text">Settings</h5>
+          <ul>
+            <li><a class="white-text" href="#!">Link 1</a></li>
+            <li><a class="white-text" href="#!">Link 2</a></li>
+            <li><a class="white-text" href="#!">Link 3</a></li>
+            <li><a class="white-text" href="#!">Link 4</a></li>
+          </ul>
+        </div>
+        <div class="col l3 s12">
+          <h5 class="white-text">Connect</h5>
+          <ul>
+            <li><a class="white-text" href="#!">Link 1</a></li>
+            <li><a class="white-text" href="#!">Link 2</a></li>
+            <li><a class="white-text" href="#!">Link 3</a></li>
+            <li><a class="white-text" href="#!">Link 4</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-copyright">
+      <div class="container">
+      Made by <a class="orange-text text-lighten-3" href="http://materializecss.com">Materialize</a>
+      </div>
+    </div>
+  </footer>
+  -->
+
+
+{% endblock %}
+{% block trades %}
+<div class="col s12 m8 offset-m2">
+  {% if rep is not none %}
+  <div style="center">
+  <h4>Company trades</h4>
+  <table class="rankings">
+      <tr>
+          <th>date</th>
+          <th>num_shares</th>
+          <th>issuer_cik</th>
+          <th>insider_cik</th>
+      </tr>
+    {% for trade in trades %}
+      <tr>
+        <td>{{ trade.date }}</td>
+        <td>{{ trade.num_shares }}</td>
+        <td>{{ trade.issuer_cik }}</td>
+        <td>{{ trade.insider_cik }}</td>
+      </tr>
+    {% else %}
+      <em>No trades in date range...</em>
+    {% endfor %}
+  </div>
+  {% endif %}
+  </ul>  
+</div>
+{% endblock %}

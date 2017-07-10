@@ -17,7 +17,7 @@ create table insider (
     is_officer            text,
     is_director           text,
     is_ten_percent_owner  text,
-    is_other_exec_type    text,
+    is_other_exec_type    text
 );
 
 drop table if exists trade;
