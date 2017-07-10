@@ -8,16 +8,32 @@
       <div class="row center">
         <h5 class="header col s12 light">Includes reported trades of executives, board members, officers, etc.</h5>
       </div>
-      <div class="row center">
-        <div class="col s12 m4 offset-m4">
-          <form action="{{ url_for('show_homepage') }}" method=post enctype=multipart/form-data>
-            <label>Company stock ticker: </label><br />
-            <input type="text" name="ticker"><br />
-            <input type="submit" value="Get Trades" id="btn-submit" class="btn-large waves-effect waves-light orange">
-          </form>
+        <div class="col s12 m6 offset-m3">
+            <div class="row center">
+                <form action="{{ url_for('show_homepage') }}" method=post enctype=multipart/form-data>
+                    <div class="col l4">
+                        <label>Company stock ticker: </label><br />
+                        <input type="text" name="ticker"><br />
+                    </div>
+                    <div class="col l4">
+                        <label>Start Date: </label><br />
+                        <select name="year_start">
+                            <option value="2016">2016</option>
+                            <option value="2015">2015</option>
+                        </select>
+                    </div>
+                    <div class="col l4">
+                        <label>End Date: </label><br />
+                        <select name="year_end">
+                            <option value="2016">2016</option>
+                            <option value="2015">2015</option>
+                        </select>
+                    </div>
+                    <input type="submit" value="Get Trades" id="btn-submit" class="btn-large waves-effect waves-light orange">
+                </form>
+            </div>
         </div>
-      </div>
-      <br><br>
+        <br><br>
 
     </div>
   </div>
@@ -106,7 +122,7 @@
 {% endblock %}
 {% block trades %}
 <div class="col s12 m8 offset-m2">
-  {% if rep is not none %}
+  {% if trades is not none %}
   <div style="center">
   <h4>Company trades</h4>
   <table class="rankings">

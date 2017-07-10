@@ -80,9 +80,9 @@ def teardown_request(exception):
         db.close()
 
 
-def get_trades_from_ticker(ticker):
-    forms = get_trades.forms_from_ticker_iter(ticker, '2016', '2016',
-                                               cache_files=True)
+def get_trades_from_ticker(ticker, year_start, year_end):
+    forms = get_trades.forms_from_ticker_iter(ticker, year_start, year_end,
+                                              cache_files=True)
     """
     d = [
         {'date': '01-01-2016',
@@ -111,7 +111,9 @@ def get_trades_from_ticker(ticker):
 def show_homepage():
     if request.method == 'POST':
         ticker = request.form['ticker']
-        trades = get_trades_from_ticker(ticker)
+        year_start = request.form['year_start']
+        year_end = request.form['year_end']
+        trades = get_trades_from_ticker(ticker, year_start, year_end)
         return render_template('home.html', trades=trades)
     return render_template('home.html')
 
