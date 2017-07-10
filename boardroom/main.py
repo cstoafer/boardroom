@@ -80,40 +80,13 @@ def teardown_request(exception):
         db.close()
 
 
-def get_trades_from_ticker(ticker, year_start, year_end):
-    forms = get_trades.forms_from_ticker_iter(ticker, year_start, year_end,
-                                              cache_files=True)
-    """
-    d = [
-        {'date': '01-01-2016',
-         'num_shares': '12452',
-         'issuer_cik': 19487,
-         'insider_cik': 489712
-         },
-        {'date': '01-04-2016',
-         'num_shares': '89735',
-         'issuer_cik': 19487,
-         'insider_cik': 1298750
-         },
-    ]
-    """
-    trades_all = []
-    for form in forms:
-        trades = form['nonderivative']['trades']
-        for t in trades:
-            t['issuer_cik'] = list(form['issuer'].keys())[0]
-            t['insider_cik'] = list(form['owner'].keys())[0]
-        trades_all.extend(trades)
-    return trades_all
-
-
 @app.route('/', methods=['GET', 'POST'])
 def show_homepage():
     if request.method == 'POST':
         ticker = request.form['ticker']
         year_start = request.form['year_start']
         year_end = request.form['year_end']
-        trades = get_trades_from_ticker(ticker, year_start, year_end)
+        trades = get_trades.get_trades_from_ticker(ticker, year_start, year_end)
         return render_template('home.html', trades=trades)
     return render_template('home.html')
 

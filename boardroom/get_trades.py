@@ -19,3 +19,18 @@ def forms_from_ticker_iter(ticker, year_start, year_end, cache_files=False,
             yield form_dict
             if used_cache is False:
                 time.sleep(download_delay)
+
+
+def get_trades_from_ticker(ticker, year_start, year_end):
+    forms = forms_from_ticker_iter(ticker, year_start, year_end,
+                                   cache_files=True)
+    trades_all = []
+    for form in forms:
+        trades = form['nonderivative']['trades']
+        for t in trades:
+            t['issuer_cik'] = list(form['issuer'].keys())[0]
+            t['insider_cik'] = list(form['owner'].keys())[0]
+        trades_all.extend(trades)
+    return trades_all
+
+
