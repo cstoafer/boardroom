@@ -7,9 +7,8 @@ except:
 import gzip
 import csv
 import datetime
-
+from lxml import etree
 import requests
-from bs4 import BeautifulSoup
 
 from boardroom import utils
 from boardroom import config
@@ -49,8 +48,8 @@ def ticker_to_cik(ticker, use_cache=True, remove_leading_zeros=True):
             'CIK={}&count=100&output=xml'.format(ticker)
     r = requests.get(query)
     xml = r.text
-    soup = BeautifulSoup(xml, "html.parser")
-    cik = soup.find('cik').decode_contents()
+    tree = etree.fromstring(xml)
+    cik = tree.xpath('//cik//text()')[0]
     # if use_cache is True, then add the data to the cached dictionary
     if use_cache:
         ticker_cik_dict[ticker] = cik
