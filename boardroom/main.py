@@ -20,16 +20,6 @@ DEBUG = True if SECRET_KEY == 'development' else False
 # create the application
 app.config.from_object(__name__)
 
-"""
-# Load default config and override config from an environment variable
-app.config.update(dict(
-    DATABASE=os.path.join(app.root_path, 'db.db'),
-    SECRET_KEY='development',
-    USERNAME='admin',
-    PASSWORD='default'
-))
-app.config.from_envvar('BOARDROOM_APP_SETTINGS', silent=True)
-"""
 
 def connect_db():
     """Connects to the specific database."""
@@ -102,27 +92,6 @@ def show_rankings():
     submissions = [dict(eid=row[0], score=row[1]) for row in cur.fetchall()]
     return render_template('rankings.html', submissions=submissions)
 
-
-@app.route('/submit', methods=['GET', 'POST'])
-def submit():
-    error = None
-    if request.method == 'POST':
-        eid = request.form['eid']
-        #print(request.files.keys())
-        filefield = request.files['filefield']
-        #filedata = StringIO.StringIO(filefield['body'])
-        score, scoretxt = calc_score(filefield)
-        print(scoretxt)
-        if score is None:
-            error = 'Answer file submission failed.'
-        else:
-            flash('Your score: {}'.format(scoretxt))
-            ### Insert score into rankings
-            g.db.execute('insert into submissions (eid, score) values (?, ?)',
-                         [request.form['eid'], score])
-            g.db.commit()
-            return redirect(url_for('show_rankings'))
-    return render_template('submit.html', error=error)
 
 if __name__ == '__main__':
     app.run()
