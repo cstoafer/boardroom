@@ -20,7 +20,7 @@ except NameError:
 
 
 def ticker_to_cik(ticker, use_cache=True, remove_leading_zeros=True):
-    '''
+    """
     Returns a company's CIK with their ticker symbol as input.
 
     The CIK (Central Index Key) is used by the SEC for data lookup for company.
@@ -34,7 +34,7 @@ def ticker_to_cik(ticker, use_cache=True, remove_leading_zeros=True):
 
     Returns:
         Unicode: CIK (Central Index Key) for company.
-    '''
+    """
     if not isinstance(ticker, basestring):
         raise TypeError('ticker needs to be a string')
     if use_cache:
@@ -58,7 +58,8 @@ def ticker_to_cik(ticker, use_cache=True, remove_leading_zeros=True):
         cik = str(int(cik))
     return cik
 
-def write_forms_index(input_src, output_path, form_types=['4'], output_delimiter='|'):
+
+def write_forms_index(input_src, output_path, form_types=('3','4','5'), output_delimiter='|'):
     """
     Parses input from SEC form index files and writes to csv.
 
@@ -89,8 +90,9 @@ def write_forms_index(input_src, output_path, form_types=['4'], output_delimiter
             line.extend(row[-3:])
             csvwriter.writerow(line)
 
+
 def get_forms_index(years=range(1993,datetime.datetime.now().year+1),
-                    output_dir='data/form_index/', overwrite=False, form_types=['4'],
+                    output_dir='data/form_index/', overwrite=False, form_types=('3','4','5'),
                     output_delimiter='|', email=config.email):
     """
     Opens the SEC index by form category, parses the content, and saves to csv files.
@@ -144,7 +146,7 @@ def get_forms_index(years=range(1993,datetime.datetime.now().year+1),
             ftp.retrbinary('RETR {}'.format(index_loc), zipfile.write)
             zipfile.seek(0)
             # input_src is the uncompressed version of zipfile
-            input_src = gzip.GzipFile(mode = 'rb', fileobj = zipfile)
+            input_src = gzip.GzipFile(mode='rb', fileobj=zipfile)
             if not os.path.exists(output_dir):
                 os.makedirs(output_dir)
             write_forms_index(input_src, output_path=output_path, form_types=form_types,
@@ -169,15 +171,14 @@ def _save_sec_form_cache(form_loc, text):
 
 def download_sec_form(form_loc):
     """Downloads SEC form from EDGAR system using HTTPS"""
-    baseurl = 'https://www.sec.gov/Archives/'
-    url = baseurl + form_loc
+    url = config.EDGAR_BASEURL + form_loc
     r = requests.get(url)
     content = r.content
     return content
 
 
 def get_sec_form(form_loc, cache_file=False):
-    '''
+    """
     Retrieves an SEC form from location using cache or HTTPS
 
     Args:
@@ -186,7 +187,7 @@ def get_sec_form(form_loc, cache_file=False):
 
     Returns:
         string
-    '''
+    """
     try:
         text = _get_sec_form_cache(form_loc)
         used_cache = True
