@@ -1,14 +1,13 @@
 import os
-from ftplib import FTP
-try:
-    from StringIO import StringIO
-except:
-    from io import StringIO, BytesIO
 import gzip
 import csv
 import datetime
 from lxml import etree
 import requests
+try:
+    from StringIO import StringIO
+except:
+    from io import StringIO, BytesIO
 
 from boardroom import utils
 from boardroom import config
@@ -17,6 +16,18 @@ try:
     basestring
 except NameError:
     basestring = str
+
+
+def download_sec_file(file_loc):
+    """Downloads SEC form from EDGAR system using HTTPS"""
+    if file_loc.startswith('/'):
+        file_loc = file_loc[1:]
+    url = config.EDGAR_BASEURL + file_loc
+    r = requests.get(url)
+    content = r.content
+    if r.status_code == 404:
+        raise FileNotFoundError('{} not found on EDGAR site'.format(file_loc))
+    return content
 
 
 def ticker_to_cik(ticker, use_cache=True, remove_leading_zeros=True):
@@ -47,9 +58,9 @@ def ticker_to_cik(ticker, use_cache=True, remove_leading_zeros=True):
     query = 'http://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&' \
             'CIK={}&count=100&output=xml'.format(ticker)
     r = requests.get(query)
-    xml = r.text
+    xml = r.content
     tree = etree.fromstring(xml)
-    cik = tree.xpath('//cik//text()')[0]
+    cik = tree.xpath('//CIK//text()')[0]
     # if use_cache is True, then add the data to the cached dictionary
     if use_cache:
         ticker_cik_dict[ticker] = cik
@@ -77,11 +88,11 @@ def write_forms_index(input_src, output_path, form_types=('3','4','5'), output_d
             Defaults to '|'.
 
     """
-    with open(output_path, 'ab') as writecsv:
+    with open(output_path, 'a') as writecsv:
         csvwriter = csv.writer(writecsv, delimiter=output_delimiter)
         csvreader = csv.reader(input_src, delimiter=' ', skipinitialspace=True)
         for row in csvreader:
-            if row[0] not in form_types:
+            if len(row) == 0 or row[0] not in form_types:
                 continue
             if '' in row:
                 row.remove('')
@@ -92,13 +103,13 @@ def write_forms_index(input_src, output_path, form_types=('3','4','5'), output_d
 
 
 def get_forms_index(years=range(1993,datetime.datetime.now().year+1),
-                    output_dir='data/form_index/', overwrite=False, form_types=('3','4','5'),
-                    output_delimiter='|', email=config.email):
+                    overwrite=False, form_types=('3','4','5'),
+                    output_delimiter='|'):
     """
     Opens the SEC index by form category, parses the content, and saves to csv files.
 
     The SEC indices are a list of forms that were submitted in a given time period. The index
-    contains: form type, company name, date of submission, and location of document on ftp.sec.gov.
+    contains: form type, company name, date of submission, and location of document on EDGAR.
 
     In this function, the indices are collected for each year in ``years`` and output to the
     directory ``output_dir``, one csv file for each year. This only needs to be run once when
@@ -106,11 +117,6 @@ def get_forms_index(years=range(1993,datetime.datetime.now().year+1),
 
     Writes a delimited file to ``output_path``.  Each line is:
         <form type>|<company name>|<CIK>|<form submission date>|<location on ftp.sec.gov>
-
-    NOTE: to abide by the rules of the
-    `SEC FTP site <https://www.sec.gov/edgar/searchedgar/ftpusers.htm>`_ you will need to
-    include your email for logging in.  This only seems to be used if there is a problem
-    with the server. You can set your email in config.py.
 
     Args:
         years (Iterable): One item for each year.  Defaults to entire history available
@@ -122,37 +128,29 @@ def get_forms_index(years=range(1993,datetime.datetime.now().year+1),
             forms 3, 4, 5, as described on the `SEC forms site <https://www.sec.gov/forms>`_.
         output_delimiter (char): Single character delimiter (as required by python's csv package).
             Defaults to '|'.
-        email (str): Your email address used for logging into SEC ftp site. Defaults to value
-            in config.py.
 
     """
-    ftp = FTP('ftp.sec.gov')
-    # login and password, as per instructions on SEC ftp site
-    # https://www.sec.gov/edgar/searchedgar/ftpusers.htm
-    login = 'anonymous'
-    password = email
-    ftp.login(login, password)
     for year in years:
-        output_path = os.path.join(output_dir, '{}.csv'.format(year))
+        output_path = utils.get_form_index_fpath(year)
         if overwrite is True:
             utils.silentremove(output_path)
-        folders = ftp.nlst('/edgar/full-index/{YYYY}'.format(YYYY=year))
-        quarters = [folder for folder in folders if 'QTR' in folder]
-        for quarter in quarters:
-            # zipfile acts as a file, but is held in memory as opposed to saving to a file
-            zipfile = StringIO()
-            index_loc = '{quarter}/form.gz'.format(quarter=quarter)
-            # write the compressed gzip file to zipfile
-            ftp.retrbinary('RETR {}'.format(index_loc), zipfile.write)
-            zipfile.seek(0)
-            # input_src is the uncompressed version of zipfile
-            input_src = gzip.GzipFile(mode='rb', fileobj=zipfile)
-            if not os.path.exists(output_dir):
-                os.makedirs(output_dir)
-            write_forms_index(input_src, output_path=output_path, form_types=form_types,
-                              output_delimiter=output_delimiter)
-            input_src.close()
-    ftp.quit()
+        quarter_folders = ['QTR{}'.format(i) for i in range(1,5)]
+        for quarter in quarter_folders:
+            try:
+                index_loc = 'edgar/full-index/{YYYY}/{quarter}/form.gz'.format(
+                    YYYY=year, quarter=quarter)
+                content_gz = download_sec_file(index_loc)
+                content = gzip.decompress(content_gz).decode('utf8')
+                input_src = StringIO(content)
+                output_dir = os.path.dirname(output_path)
+                if not os.path.exists(output_dir):
+                    os.makedirs(output_dir)
+                write_forms_index(input_src,
+                                  output_path=output_path,
+                                  form_types=form_types,
+                                  output_delimiter=output_delimiter)
+            except FileNotFoundError:
+                pass
 
 
 def _get_sec_form_cache(form_loc):
@@ -167,14 +165,6 @@ def _save_sec_form_cache(form_loc, text):
     outpath = os.path.join(config.FORM_CACHE_DIR, form_loc)
     utils.makedirs(os.path.dirname(outpath))
     utils.save_file(outpath, text, compress=True)
-
-
-def download_sec_form(form_loc):
-    """Downloads SEC form from EDGAR system using HTTPS"""
-    url = config.EDGAR_BASEURL + form_loc
-    r = requests.get(url)
-    content = r.content
-    return content
 
 
 def get_sec_form(form_loc, cache_file=False):
@@ -192,7 +182,7 @@ def get_sec_form(form_loc, cache_file=False):
         text = _get_sec_form_cache(form_loc)
         used_cache = True
     except FileNotFoundError:
-        content = download_sec_form(form_loc)
+        content = download_sec_file(form_loc)
         text = content.decode('utf8')
         used_cache = False
         if cache_file is True:

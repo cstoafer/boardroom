@@ -64,7 +64,7 @@ def silentremove(filepath):
 
 
 def get_form_index_fpath(year):
-    fname = '{}.csv'.format(year)
+    fname = '{}.psv'.format(year)
     return os.path.join(config.FORM_INDEX_DIR, fname)
 
 

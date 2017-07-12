@@ -1,6 +1,9 @@
 import os
 import unittest
-import cPickle as pickle
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 from boardroom.parse_secform import (get_xml, _get_single_xml_element, _get_single_xml_value,
                                      _xpath_to_value_mapping, get_trade_holdings_dict, get_transaction_dict,
