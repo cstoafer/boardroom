@@ -20,16 +20,6 @@ DEBUG = True if SECRET_KEY == 'development' else False
 # create the application
 app.config.from_object(__name__)
 
-"""
-# Load default config and override config from an environment variable
-app.config.update(dict(
-    DATABASE=os.path.join(app.root_path, 'db.db'),
-    SECRET_KEY='development',
-    USERNAME='admin',
-    PASSWORD='default'
-))
-app.config.from_envvar('BOARDROOM_APP_SETTINGS', silent=True)
-"""
 
 def connect_db():
     """Connects to the specific database."""
@@ -80,40 +70,13 @@ def teardown_request(exception):
         db.close()
 
 
-def get_trades_from_ticker(ticker, year_start, year_end):
-    forms = get_trades.forms_from_ticker_iter(ticker, year_start, year_end,
-                                              cache_files=True)
-    """
-    d = [
-        {'date': '01-01-2016',
-         'num_shares': '12452',
-         'issuer_cik': 19487,
-         'insider_cik': 489712
-         },
-        {'date': '01-04-2016',
-         'num_shares': '89735',
-         'issuer_cik': 19487,
-         'insider_cik': 1298750
-         },
-    ]
-    """
-    trades_all = []
-    for form in forms:
-        trades = form['nonderivative']['trades']
-        for t in trades:
-            t['issuer_cik'] = list(form['issuer'].keys())[0]
-            t['insider_cik'] = list(form['owner'].keys())[0]
-        trades_all.extend(trades)
-    return trades_all
-
-
 @app.route('/', methods=['GET', 'POST'])
 def show_homepage():
     if request.method == 'POST':
         ticker = request.form['ticker']
         year_start = request.form['year_start']
         year_end = request.form['year_end']
-        trades = get_trades_from_ticker(ticker, year_start, year_end)
+        trades = get_trades.get_trades_from_ticker(ticker, year_start, year_end)
         return render_template('home.html', trades=trades)
     return render_template('home.html')
 
@@ -129,27 +92,6 @@ def show_rankings():
     submissions = [dict(eid=row[0], score=row[1]) for row in cur.fetchall()]
     return render_template('rankings.html', submissions=submissions)
 
-
-@app.route('/submit', methods=['GET', 'POST'])
-def submit():
-    error = None
-    if request.method == 'POST':
-        eid = request.form['eid']
-        #print(request.files.keys())
-        filefield = request.files['filefield']
-        #filedata = StringIO.StringIO(filefield['body'])
-        score, scoretxt = calc_score(filefield)
-        print(scoretxt)
-        if score is None:
-            error = 'Answer file submission failed.'
-        else:
-            flash('Your score: {}'.format(scoretxt))
-            ### Insert score into rankings
-            g.db.execute('insert into submissions (eid, score) values (?, ?)',
-                         [request.form['eid'], score])
-            g.db.commit()
-            return redirect(url_for('show_rankings'))
-    return render_template('submit.html', error=error)
 
 if __name__ == '__main__':
     app.run()
