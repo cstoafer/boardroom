@@ -9,7 +9,6 @@ from boardroom.parse_secform import (get_xml, _get_single_xml_element, _get_sing
                                      _xpath_to_value_mapping, get_trade_holdings_dict, get_transaction_dict,
                                      get_owner_dict, get_issuer_dict, get_issuer_dict_from_xmltree, get_owner_dict_from_xmltree,
                                      get_nonderivative_info_dict_from_xmltree, get_form_dict)
-from boardroom.ingestdata import get_sec_form
 from boardroom.tests.utils import TEST_DIRECTORY, internet_on
 
 class TestGetFormDict(unittest.TestCase):
@@ -22,7 +21,5 @@ class TestGetFormDict(unittest.TestCase):
     def test_basic_case_form4(self):
         form_loc = 'edgar/data/1551138/0001144204-16-074214.txt'
         output = get_form_dict(form_loc)
-        with open(os.path.join(TEST_DIRECTORY, 'data_tests/form4_dict_new.pickle'), 'wb') as o:
-            pickle.dump(output, o)
         self.assertEqual(output, self.form4_dict)
 
