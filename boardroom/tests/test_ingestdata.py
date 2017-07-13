@@ -48,7 +48,7 @@ class TestWriteFormsIndex(unittest.TestCase):
 
     def test_basic_case(self):
         self.sample_formindex.seek(0)
-        write_forms_index(self.sample_formindex, self.output_path)
+        write_forms_index(self.sample_formindex, self.output_path, form_types=['4'])
         self.assertTrue(os.path.exists(self.output_path))
         path_to_expected = os.path.join(TEST_DIRECTORY, 'data_tests/sample_formindex_output.csv')
         self.assertTrue(filecmp.cmp(self.output_path, path_to_expected))

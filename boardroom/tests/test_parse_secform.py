@@ -22,5 +22,7 @@ class TestGetFormDict(unittest.TestCase):
     def test_basic_case_form4(self):
         form_loc = 'edgar/data/1551138/0001144204-16-074214.txt'
         output = get_form_dict(form_loc)
+        with open(os.path.join(TEST_DIRECTORY, 'data_tests/form4_dict_new.pickle'), 'wb') as o:
+            pickle.dump(output, o)
         self.assertEqual(output, self.form4_dict)
 
