@@ -6,6 +6,8 @@ except ImportError:
     import pickle
 import gzip
 import csv
+import time
+import datetime
 
 from boardroom import config
 
@@ -75,3 +77,29 @@ def form_loc_iter(year, delimiter='|', cik=None):
         for row in csvreader:
             if cik is None or row[2] == cik:
                 yield row
+
+
+def date_str_to_datetime(dt_str, fmt='%Y-%m-%d'):
+    return datetime.datetime.strptime(dt_str, fmt)
+
+
+def datetime_to_epoch_time(dt):
+    return int(datetime.datetime(dt).timestamp())
+
+
+def date_str_to_epoch_time(dt_str):
+    dt = date_str_to_datetime(dt_str)
+    return datetime_to_epoch_time(dt)
+
+
+def get_current_epoch_time(fmt='%Y-%m-%d'):
+    dt_str = datetime.datetime.now().strftime(fmt)
+    return date_str_to_epoch_time(dt_str)
+
+
+def epoch_time_to_datetime(epoch_time):
+    return datetime.datetime.fromtimestamp(epoch_time)
+
+
+def epoch_time_to_date_str(epoch_time, fmt='%Y-%m-%d'):
+    return epoch_time_to_datetime(epoch_time).strftime(fmt)
