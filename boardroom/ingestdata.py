@@ -1,6 +1,8 @@
 import os
 import gzip
 import csv
+import json
+import time
 import datetime
 from lxml import etree
 import requests
@@ -18,12 +20,27 @@ except NameError:
     basestring = str
 
 
+def download_url(url, num_retries=3, retry_time_delay=1,
+                 accept_status_codes=(200,)):
+    headers = {"Connection" : "close"}
+    for i in range(num_retries):
+        try:
+            r = requests.get(url, headers=headers)
+            assert(r.status_code in accept_status_codes)
+        except Exception as e:
+            print('There was an error with request: {}'.format(e))
+            if i == num_retries-1:
+                raise
+            time.sleep(retry_time_delay)
+    return r
+
+
 def download_sec_file(file_loc):
     """Downloads SEC form from EDGAR system using HTTPS"""
     if file_loc.startswith('/'):
         file_loc = file_loc[1:]
     url = config.EDGAR_BASEURL + file_loc
-    r = requests.get(url)
+    r = download_url(url, accept_status_codes=(200,404))
     content = r.content
     if r.status_code == 404:
         raise FileNotFoundError('{} not found on EDGAR site'.format(file_loc))
@@ -176,7 +193,7 @@ def get_sec_form(form_loc, cache_file=False):
             Example: 'edgar/data/1551138/0001144204-16-074214.txt'
 
     Returns:
-        string
+        string, boolean
     """
     try:
         text = _get_sec_form_cache(form_loc)
@@ -188,3 +205,77 @@ def get_sec_form(form_loc, cache_file=False):
         if cache_file is True:
             _save_sec_form_cache(form_loc, content)
     return text, used_cache
+
+
+def _get_yahoo_finance_url(ticker, date_range_epoch):
+    url = config.YAHOO_STRUCTURL.format(ticker=ticker,
+                                        dt_start=date_range_epoch[0],
+                                        dt_end=date_range_epoch[1])
+    return url
+
+
+def download_stock_prices_yahoo_page(ticker, date_range=None):
+    if date_range is None:
+        start = 0
+        end = utils.get_current_epoch_time()
+        date_range_epoch = (start, end)
+    else:
+        date_range_epoch = tuple(map(utils.date_str_to_epoch_time, date_range))
+    url = _get_yahoo_finance_url(ticker, date_range_epoch)
+    r = download_url(url)
+    return r.content
+
+
+def parse_stock_prices_yahoo(content):
+    text = content.decode('utf8')
+    start_str = '"prices":['
+    len_start_str = len(start_str) - 1
+    prices_text = text[text.find(start_str)+len_start_str:]
+    end_str = ']'
+    prices_text = prices_text[:prices_text.find(end_str)+1]
+    price_dicts = json.loads(prices_text)
+    return price_dicts
+
+
+def save_stock_prices(ticker, price_dicts):
+    fname = '{}.json'.format(ticker.upper())
+    outpath = os.path.join(config.STOCK_PRICE_DIR, fname)
+    with open(outpath, 'w') as o:
+        json.dump(price_dicts, o)
+
+
+def download_and_save_stock_prices(ticker, date_range=None):
+    content = download_stock_prices_yahoo_page(ticker, date_range)
+    price_dict = parse_stock_prices_yahoo(content)
+    save_stock_prices(ticker, price_dict)
+    return price_dict
+
+
+def _get_stock_price_cache(ticker):
+    fname = '{}.json'.format(ticker.upper())
+    fpath = os.path.join(config.STOCK_PRICE_DIR, fname)
+    with open(fpath, 'r') as f:
+        stock_prices = json.load(f)
+    return stock_prices
+
+
+def _get_raw_stock_prices(ticker):
+    try:
+        stock_prices = _get_stock_price_cache(ticker)
+    except FileNotFoundError:
+        stock_prices = download_and_save_stock_prices(ticker)
+    return stock_prices
+
+
+def _process_stock_prices(raw_stock_prices):
+    new_stock_prices = []
+    for d in raw_stock_prices:
+        date_epoch = d['date']
+        d['date'] = utils.epoch_time_to_date_str(date_epoch)
+        new_stock_prices.append(d)
+    return new_stock_prices
+
+
+def get_stock_prices(ticker):
+    raw_stock_prices = _get_raw_stock_prices(ticker)
+    return _process_stock_prices(raw_stock_prices)
