@@ -84,7 +84,7 @@ def date_str_to_datetime(dt_str, fmt='%Y-%m-%d'):
 
 
 def datetime_to_epoch_time(dt):
-    return int(datetime.datetime(dt).timestamp())
+    return int(dt.timestamp())
 
 
 def date_str_to_epoch_time(dt_str):

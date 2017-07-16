@@ -1,13 +1,16 @@
 import shutil
 import os
 import datetime
+import json
 
 import sqlite3
 from flask import Flask, request, session, g, redirect, url_for, \
                   abort, render_template, flash
 from contextlib import closing
 
-from boardroom import get_trades
+import plotly
+
+from boardroom import get_trades, get_stock_prices
 
 
 app = Flask(__name__)
@@ -69,6 +72,39 @@ def teardown_request(exception):
     if db is not None:
         db.close()
 
+def trade_to_line_shape(trade):
+    buycolor = 'rgba(191, 128, 55, 0.3)'
+    sellcolor = 'rgba(55, 191, 128, 0.3)'
+    unkcolor = 'rgba(128, 128, 128, 0.3)'
+    if trade['acquired_disposed_code'] == 'A':
+        color = buycolor
+    elif trade['acquired_disposed_code'] == 'D':
+        color = sellcolor
+    else:
+        color = unkcolor
+    line = {
+        'type': 'line',
+        'xref': 'x',
+        'yref': 'paper',
+        'x0': trade['date'],
+        'y0': 0,
+        'x1': trade['date'],
+        'y1': 1,
+        'line': {
+            'color': color,
+            'width': 1,
+        },
+    }
+    return line
+
+def build_graph(ticker, dates, prices, trades):
+    graph = {'data': [{'x':dates, 'y':prices}],
+             'layout': {
+                 'title': '{}'.format(ticker.upper()),
+                 'shapes': [trade_to_line_shape(trade) for trade in trades]
+             }
+             }
+    return graph
 
 @app.route('/', methods=['GET', 'POST'])
 def show_homepage():
@@ -77,7 +113,11 @@ def show_homepage():
         year_start = request.form['year_start']
         year_end = request.form['year_end']
         trades = get_trades.get_trades_from_ticker(ticker, year_start, year_end)
-        return render_template('home.html', trades=trades)
+        dates, prices = get_stock_prices.get_stock_price_timeseries(ticker)
+        graph_ids = ['graph-1']
+        graph = [build_graph(ticker, dates, prices, trades)]
+        graphJSON = json.dumps(graph, cls=plotly.utils.PlotlyJSONEncoder)
+        return render_template('home.html', trades=trades, graphJSON=graphJSON, graph_ids=graph_ids)
     return render_template('home.html')
 
 
