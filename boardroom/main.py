@@ -84,8 +84,9 @@ def show_homepage():
         graph_ids = ['graph-1']
         graph = [plot_data.build_graph(ticker, dates, prices, trades)]
         graphJSON = json.dumps(graph, cls=plotly.utils.PlotlyJSONEncoder)
-        return render_template('home.html', trades=trades, graphJSON=graphJSON, graph_ids=graph_ids)
-    return render_template('home.html')
+        return render_template('home.html', form=request.form, trades=trades,
+                               graphJSON=graphJSON, graph_ids=graph_ids)
+    return render_template('home.html', form=None)
 
 
 if __name__ == '__main__':
