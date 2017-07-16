@@ -1,10 +1,6 @@
 import os
 import unittest
 import json
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
 
 from boardroom import utils
 from boardroom.tests.utils import TEST_DIRECTORY

@@ -1,9 +1,5 @@
 import os
 import errno
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
 import json
 import gzip
 import csv
