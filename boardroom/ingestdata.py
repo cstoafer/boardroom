@@ -43,7 +43,7 @@ def download_sec_file(file_loc):
     r = download_url(url, accept_status_codes=(200,404))
     content = r.content
     if r.status_code == 404:
-        raise FileNotFoundError('{} not found on EDGAR site'.format(file_loc))
+        r.raise_for_status()
     return content
 
 
@@ -166,7 +166,7 @@ def get_forms_index(years=range(1993,datetime.datetime.now().year+1),
                                   output_path=output_path,
                                   form_types=form_types,
                                   output_delimiter=output_delimiter)
-            except FileNotFoundError:
+            except requests.exceptions.HTTPError:
                 pass
 
 
