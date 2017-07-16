@@ -66,7 +66,7 @@ def ticker_to_cik(ticker, use_cache=True, remove_leading_zeros=True):
     if not isinstance(ticker, basestring):
         raise TypeError('ticker needs to be a string')
     if use_cache:
-        ticker_cik_dict = utils.load_cache_dict('ticker_cik.p')
+        ticker_cik_dict = utils.load_cache_dict('ticker_cik.json')
         if ticker in ticker_cik_dict:
             cik = ticker_cik_dict[ticker]
             if remove_leading_zeros is True:
@@ -81,7 +81,7 @@ def ticker_to_cik(ticker, use_cache=True, remove_leading_zeros=True):
     # if use_cache is True, then add the data to the cached dictionary
     if use_cache:
         ticker_cik_dict[ticker] = cik
-        utils.save_cache_dict(ticker_cik_dict, 'ticker_cik.p')
+        utils.save_cache_dict(ticker_cik_dict, 'ticker_cik.json')
     if remove_leading_zeros is True:
         cik = str(int(cik))
     return cik
