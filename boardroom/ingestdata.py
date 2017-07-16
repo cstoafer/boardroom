@@ -276,6 +276,9 @@ def _process_stock_prices(raw_stock_prices):
     return new_stock_prices
 
 
-def get_stock_prices(ticker):
+def get_stock_price_dicts(ticker):
     raw_stock_prices = _get_raw_stock_prices(ticker)
     return _process_stock_prices(raw_stock_prices)
+
+
+

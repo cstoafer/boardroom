@@ -1,13 +1,16 @@
 import shutil
 import os
 import datetime
+import json
 
 import sqlite3
 from flask import Flask, request, session, g, redirect, url_for, \
                   abort, render_template, flash
 from contextlib import closing
 
-from boardroom import get_trades
+import plotly
+
+from boardroom import get_trades, get_stock_prices, plot_data
 
 
 app = Flask(__name__)
@@ -77,20 +80,12 @@ def show_homepage():
         year_start = request.form['year_start']
         year_end = request.form['year_end']
         trades = get_trades.get_trades_from_ticker(ticker, year_start, year_end)
-        return render_template('home.html', trades=trades)
+        dates, prices = get_stock_prices.get_stock_price_timeseries(ticker)
+        graph_ids = ['graph-1']
+        graph = [plot_data.build_graph(ticker, dates, prices, trades)]
+        graphJSON = json.dumps(graph, cls=plotly.utils.PlotlyJSONEncoder)
+        return render_template('home.html', trades=trades, graphJSON=graphJSON, graph_ids=graph_ids)
     return render_template('home.html')
-
-
-@app.route('/instructions')
-def show_instructions():
-    return render_template('instructions.html')
-
-
-@app.route('/rankings')
-def show_rankings():
-    cur = g.db.execute('select eid, score from submissions order by score asc')
-    submissions = [dict(eid=row[0], score=row[1]) for row in cur.fetchall()]
-    return render_template('rankings.html', submissions=submissions)
 
 
 if __name__ == '__main__':

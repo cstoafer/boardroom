@@ -1,35 +1,39 @@
 {% extends "layout.html" %}
 {% block body %}
 
-  <div class="section no-pad-bot" id="index-banner">
+  <div class="section no-pad-bot no-pad-top" id="index-banner">
     <div class="container">
       <br><br>
-      <h1 class="header center orange-text">Retrieve insider trades of a company!</h1>
+      <!-- <h1 class="header center orange-text">boardroom</h1> -->
       <div class="row center">
-        <h5 class="header col s12 light">Includes reported trades of executives, board members, officers, etc.</h5>
+        <h5 class="header col s12 light">Look at the trades by insiders</h5>
       </div>
-        <div class="col s12 m6 offset-m3">
+        <div class="col s12 m8 offset-m2">
             <div class="row center">
                 <form action="{{ url_for('show_homepage') }}" method=post enctype=multipart/form-data>
-                    <div class="col l4">
+                    <div class="col l3">
                         <label>Company stock ticker: </label><br />
                         <input type="text" name="ticker"><br />
                     </div>
-                    <div class="col l4">
+                    <div class="col l3">
                         <label>Start Date: </label><br />
                         <select name="year_start">
+                            <option value="2017">2017</option>
                             <option value="2016">2016</option>
                             <option value="2015">2015</option>
                         </select>
                     </div>
-                    <div class="col l4">
+                    <div class="col l3">
                         <label>End Date: </label><br />
                         <select name="year_end">
+                            <option value="2017">2017</option>
                             <option value="2016">2016</option>
                             <option value="2015">2015</option>
                         </select>
                     </div>
-                    <input type="submit" value="Get Trades" id="btn-submit" class="btn-large waves-effect waves-light orange">
+                    <div class="col l3">
+                        <input type="submit" value="Get Trades" id="btn-submit" class="btn-large waves-effect waves-light orange">
+                    </div>
                 </form>
             </div>
         </div>
@@ -121,6 +125,9 @@
 
 {% endblock %}
 {% block trades %}
+    <div class="col s12 m10 offset-m1">
+        <div id="graph-1"></div>
+    </div>
 <div class="col s12 m8 offset-m2">
   {% if trades is not none %}
   <div style="center">
@@ -147,3 +154,5 @@
   </ul>  
 </div>
 {% endblock %}
+
+
