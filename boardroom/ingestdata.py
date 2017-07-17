@@ -43,7 +43,7 @@ def download_sec_file(file_loc):
     r = download_url(url, accept_status_codes=(200,404))
     content = r.content
     if r.status_code == 404:
-        raise FileNotFoundError('{} not found on EDGAR site'.format(file_loc))
+        r.raise_for_status()
     return content
 
 
@@ -66,7 +66,7 @@ def ticker_to_cik(ticker, use_cache=True, remove_leading_zeros=True):
     if not isinstance(ticker, basestring):
         raise TypeError('ticker needs to be a string')
     if use_cache:
-        ticker_cik_dict = utils.load_cache_dict('ticker_cik.p')
+        ticker_cik_dict = utils.load_cache_dict('ticker_cik.json')
         if ticker in ticker_cik_dict:
             cik = ticker_cik_dict[ticker]
             if remove_leading_zeros is True:
@@ -81,7 +81,7 @@ def ticker_to_cik(ticker, use_cache=True, remove_leading_zeros=True):
     # if use_cache is True, then add the data to the cached dictionary
     if use_cache:
         ticker_cik_dict[ticker] = cik
-        utils.save_cache_dict(ticker_cik_dict, 'ticker_cik.p')
+        utils.save_cache_dict(ticker_cik_dict, 'ticker_cik.json')
     if remove_leading_zeros is True:
         cik = str(int(cik))
     return cik
@@ -166,7 +166,7 @@ def get_forms_index(years=range(1993,datetime.datetime.now().year+1),
                                   output_path=output_path,
                                   form_types=form_types,
                                   output_delimiter=output_delimiter)
-            except FileNotFoundError:
+            except requests.exceptions.HTTPError:
                 pass
 
 

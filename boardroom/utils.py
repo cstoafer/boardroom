@@ -1,12 +1,8 @@
 import os
 import errno
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+import json
 import gzip
 import csv
-import time
 import datetime
 
 from boardroom import config
@@ -43,16 +39,16 @@ def makedirs(dirpath):
 
 def save_cache_dict(datadict, filename, directory=config.DATA_DIR):
     filepath = os.path.join(directory, filename)
-    with open(filepath, 'wb') as f:
-        pickle.dump(datadict, f)
+    with open(filepath, 'w') as f:
+        json.dump(datadict, f)
 
 
 def load_cache_dict(filename, directory=config.DATA_DIR):
     filepath = os.path.join(directory, filename)
     if not os.path.isfile(filepath):
         return dict()
-    with open(filepath, 'rb') as f:
-        datadict = pickle.load(f)
+    with open(filepath, 'r') as f:
+        datadict = json.load(f)
     return datadict
 
 

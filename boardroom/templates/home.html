@@ -13,7 +13,7 @@
                 <form action="{{ url_for('show_homepage') }}" method=post enctype=multipart/form-data>
                     <div class="col l3">
                         <label>Company stock ticker: </label><br />
-                        <input type="text" name="ticker"><br />
+                        <input type="text" name="ticker" value="{{ form.ticker.upper() if form != None }}"><br />
                     </div>
                     <div class="col l3">
                         <label>Start Date: </label><br />
