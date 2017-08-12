@@ -27,8 +27,10 @@ def download_url(url, num_retries=3, retry_time_delay=1,
         try:
             r = requests.get(url, headers=headers)
             assert(r.status_code in accept_status_codes)
-        except Exception as e:
-            print('There was an error with request: {}'.format(e))
+        except AssertionError:
+            print('There was an error with request.\n'
+                  'url: {}\nstatus code: {}'.format(url, r.status_code)
+                  )
             if i == num_retries-1:
                 raise
             time.sleep(retry_time_delay)
@@ -157,7 +159,7 @@ def get_forms_index(years=range(1993,datetime.datetime.now().year+1),
                 index_loc = 'edgar/full-index/{YYYY}/{quarter}/form.gz'.format(
                     YYYY=year, quarter=quarter)
                 content_gz = download_sec_file(index_loc)
-                content = gzip.decompress(content_gz).decode('utf8')
+                content = gzip.decompress(content_gz).decode('latin-1')
                 input_src = StringIO(content)
                 output_dir = os.path.dirname(output_path)
                 if not os.path.exists(output_dir):
@@ -240,6 +242,9 @@ def parse_stock_prices_yahoo(content):
 def save_stock_prices(ticker, price_dicts):
     fname = '{}.json'.format(ticker.upper())
     outpath = os.path.join(config.STOCK_PRICE_DIR, fname)
+    output_dir = os.path.dirname(outpath)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
     with open(outpath, 'w') as o:
         json.dump(price_dicts, o)
 

@@ -236,7 +236,7 @@ def get_form_dict(form_loc, cache_file=False):
     xmlcontent = get_xml(content)
     tree = etree.fromstring(xmlcontent)
     schema_version = tree.xpath('//schemaVersion')[0].text
-    supported_schema_versions = ['X0306']
+    supported_schema_versions = ['X0206', 'X0306']
     if schema_version not in supported_schema_versions:
         raise ValueError('Schema version not yet supported:\n'
                          '{}'.format(schema_version))
